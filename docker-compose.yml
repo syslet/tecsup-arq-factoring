@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: factoring_db
+    restart: always
+    environment:
+      POSTGRES_USER: factoring_user
+      POSTGRES_PASSWORD: factoring_password
+      POSTGRES_DB: factoring_core_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    networks:
+      - factoring_network
+
+  backend:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: factoring_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://factoring_user:factoring_password@db:5432/factoring_core_db
+      - ENV=development
+    volumes:
+      - ./back:/app
+    depends_on:
+      - db
+    networks:
+      - factoring_network
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+      target: development
+    container_name: factoring_frontend
+    restart: always
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+    environment:
+      - PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - factoring_network
+
+networks:
+  factoring_network:
+    driver: bridge
