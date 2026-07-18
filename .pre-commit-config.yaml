@@ -1,0 +1,42 @@
+# Configuración de pre-commit para Monorepo (Back + Front)
+# Lanza linters y formateadores potentes y veloces (Ruff, Mypy, ESLint, Prettier)
+
+repos:
+  - repo: local
+    hooks:
+      # --- HOOKS PARA EL BACKEND (Flask + Ruff + Mypy) ---
+      - id: backend-ruff-check
+        name: Backend - Ruff Check (Linter)
+        entry: bash -c "cd back && uv run ruff check --fix"
+        language: system
+        files: ^back/
+        pass_filenames: false
+
+      - id: backend-ruff-format
+        name: Backend - Ruff Format (Formatter)
+        entry: bash -c "cd back && uv run ruff format"
+        language: system
+        files: ^back/
+        pass_filenames: false
+
+      - id: backend-mypy
+        name: Backend - Mypy (Type Checker)
+        entry: bash -c "cd back && uv run mypy src"
+        language: system
+        files: ^back/
+        pass_filenames: false
+
+      # --- HOOKS PARA EL FRONTEND (Astro + ESLint + Prettier) ---
+      - id: frontend-prettier
+        name: Frontend - Prettier (Formatter)
+        entry: bash -c "cd front && npx prettier --write \"src/**/*.{js,jsx,ts,tsx,astro,css}\" --ignore-unknown"
+        language: system
+        files: ^front/
+        pass_filenames: false
+
+      - id: frontend-eslint
+        name: Frontend - ESLint (Linter)
+        entry: bash -c "cd front && npx eslint"
+        language: system
+        files: ^front/
+        pass_filenames: false
