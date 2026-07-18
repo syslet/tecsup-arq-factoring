@@ -1,3 +1,45 @@
+# Proyecto Factoring
+### 🧅 Cómo encaja Onion en un sistema de Factoring
+
+
+### 1. Dominio (Núcleo)
+* Reglas de negocio del factoring:
+  * Cálculo de tasas de descuento.  
+  * Validación de vencimientos de letras/facturas.  
+  * Determinación del riesgo crediticio.  
+  * Generación de contratos y obligaciones.
+
+Este núcleo no depende de frameworks ni bases de datos, solo de entidades y lógica pura.
+
+### 2. Capa de Aplicación
+* Casos de uso:
+  * Registrar una factura para descuento.  
+  * Calcular el valor presente neto.  
+  * Aprobar o rechazar una operación según políticas.  
+
+Aquí se orquesta la interacción entre dominio e infraestructura.
+
+### 3. Infraestructura
+* Adaptadores: 
+  * Persistencia: ORM con SQLAlchemy o Django ORM.  
+  * Servicios externos: APIs de bancos, SUNAT (en Perú), SOAP/REST para validación tributaria.  
+  * Interfaces: REST/GraphQL para exponer servicios a clientes.
+
+### 4. Presentación
+* Frontend web o móvil que consume las APIs.
+* Puede cambiarse sin afectar el núcleo de negocio.
+
+### 📊 Beneficios de usar Onion en Factoring
+* **Aislamiento del núcleo financiero:** las reglas de descuento y validación no dependen de la base de datos ni del framework.
+
+* **Flexibilidad tecnológica:** puedes cambiar de Flask a FastAPI, o de MySQL a PostgreSQL sin tocar el dominio.
+
+* **Escalabilidad:** fácil integración con brokers de mensajería (RabbitMQ, Kafka) para procesar grandes volúmenes de facturas.
+
+* **Seguridad:** el núcleo protege las reglas críticas de negocio frente a cambios externos.
+
+
+
 # Core de Factoring - Monorepo Base
 
 Este proyecto consiste en el desarrollo del módulo **Core de Factoring** para una plataforma de descuento de facturas comerciales y letras de cambio, diseñado para el curso de Arquitectura de Software de Tecsup.
