@@ -33,23 +33,23 @@ front/
 
 ## 2. Local Development Setup
 
-Ensure you have [Node.js](https://nodejs.org/) installed (v20+ recommended).
+Ensure you have [Node.js](https://nodejs.org/) v22+ and [pnpm](https://pnpm.io/) installed.
 
 ### Install Dependencies
 ```bash
-npm install
+pnpm install
 ```
 
 ### Start Development Server
 Launches the site at `http://localhost:4321` with HMR:
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ### Build for Production
 Compiles Astro static files into `dist/`:
 ```bash
-npm run build
+pnpm build
 ```
 
 ---

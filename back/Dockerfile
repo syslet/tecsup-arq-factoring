@@ -1,30 +1,28 @@
-# Stage 1: Build virtual environment
-FROM ghcr.io/astral-sh/uv:python3.11-alpine AS builder
+# ── Development (hot-reload via Flask) ──
+FROM ghcr.io/astral-sh/uv:python3.11-alpine AS development
+WORKDIR /app
+ENV PYTHONUNBUFFERED=1
+EXPOSE 8000
+CMD ["sh", "-c", "uv sync && exec uv run python src/presentation/app.py"]
 
+# ── Builder (compile and install production deps) ──
+FROM ghcr.io/astral-sh/uv:python3.11-alpine AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 WORKDIR /app
 
-# Montar caches para acelerar las descargas e instalar dependencias congeladas
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
+RUN --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    uv pip compile pyproject.toml -o requirements.txt
 
-# Stage 2: Runtime image
-FROM python:3.11-alpine
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r requirements.txt
 
+# ── Production (minimal runtime) ──
+FROM python:3.11-alpine AS production
 WORKDIR /app
-
-# Copiar el entorno virtual construido
-COPY --from=builder /app/.venv /app/.venv
-# Copiar el código fuente
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . /app
-
-# Configurar variables de entorno indispensables
-ENV PATH="/app/.venv/bin:$PATH" \
-    PYTHONUNBUFFERED=1
-
+ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
-
-# Ejecutar usando la fábrica de la app
 CMD ["python", "src/presentation/app.py"]

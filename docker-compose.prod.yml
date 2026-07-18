@@ -1,0 +1,14 @@
+# Production overrides.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+services:
+  backend:
+    build:
+      target: production
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      target: production
+    ports:
+      - "80:80"

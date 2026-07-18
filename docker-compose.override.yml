@@ -1,0 +1,21 @@
+# Development overrides (applied automatically by `docker compose up`).
+# Anonymous volumes for node_modules/.venv keep container-native binaries
+# isolated from the host bind mount (host glibc vs container musl).
+services:
+  backend:
+    build:
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./back:/app
+      - /app/.venv
+
+  frontend:
+    build:
+      target: development
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
