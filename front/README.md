@@ -1,43 +1,69 @@
-# Astro Starter Kit: Minimal
+# Frontend Client Application
 
-```sh
-npm create astro@latest -- --template minimal
+This is the client-side application built with **Astro**, **TailwindCSS**, and **React** structured under **Clean Architecture**.
+
+---
+
+## 1. Directory Structure
+
+The frontend isolates business logic from rendering frameworks (Astro/React) using a layered Clean Architecture:
+
 ```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
+front/
+├── public/                 # Static assets
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── domain/             # Pure models and business entities
+│   │   └── models/         # Domain model contracts and logic
+│   ├── application/        # UI-agnostic application use cases
+│   │   └── use-cases/      # Flow workflows and orchestration
+│   ├── adapters/           # Communication and data adaptation
+│   │   ├── api/            # API clients consuming backend endpoints
+│   │   ├── dto/            # Data Transfer Objects (matching API structure)
+│   │   └── mappers/        # Translation layer mapping DTOs <-> Domain models
+│   ├── components/         # Reusable UI component modules
+│   │   ├── astro/          # High-performance static Astro components
+│   │   └── react/          # Highly interactive React islands (minimum hydration)
+│   ├── layouts/            # Shared Astro page layout wrappers
+│   ├── pages/              # Astro file-based router views (static/SSR)
+│   └── styles/             # Global stylesheets and utility variables
+└── tsconfig.json           # TypeScript configuration
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+---
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 2. Local Development Setup
 
-Any static assets, like images, can be placed in the `public/` directory.
+Ensure you have [Node.js](https://nodejs.org/) installed (v20+ recommended).
 
-## 🧞 Commands
+### Install Dependencies
+```bash
+npm install
+```
 
-All commands are run from the root of the project, from a terminal:
+### Start Development Server
+Launches the site at `http://localhost:4321` with HMR:
+```bash
+npm run dev
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+### Build for Production
+Compiles Astro static files into `dist/`:
+```bash
+npm run build
+```
 
-## 👀 Want to learn more?
+---
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## 3. Linting & Formatting
+
+### Run Code Formatter (Prettier)
+Formats all files and automatically sorts TailwindCSS classes:
+```bash
+npx prettier --write "src/**/*.{js,jsx,ts,tsx,astro,css}" --ignore-unknown
+```
+
+### Run Code Linter (ESLint)
+Analyzes code for quality, TypeScript semantics, and React hook rules:
+```bash
+npx eslint
+```
