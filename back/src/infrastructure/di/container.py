@@ -1,11 +1,23 @@
 from flask import g
 from sqlalchemy.orm import Session
 
+from src.application.use_cases.execute_disbursement import ExecuteDisbursementUseCase
 from src.application.use_cases.get_current_user import GetCurrentUserUseCase
 from src.application.use_cases.login_user import LoginUserUseCase
 from src.application.use_cases.logout_user import LogoutUserUseCase
+from src.application.use_cases.process_invoice_sheet import ProcessInvoiceSheetUseCase
 from src.application.use_cases.register_user import RegisterUserUseCase
+from src.application.use_cases.verify_company import VerifyCompanyUseCase
+from src.infrastructure.db.repositories.company_document_repository_impl import (
+    SqlAlchemyCompanyDocumentRepository,
+)
 from src.infrastructure.db.repositories.company_repository_impl import SqlAlchemyCompanyRepository
+from src.infrastructure.db.repositories.disbursement_repository_impl import (
+    SqlAlchemyDisbursementRepository,
+)
+from src.infrastructure.db.repositories.invoice_sheet_repository_impl import (
+    SqlAlchemyInvoiceSheetRepository,
+)
 from src.infrastructure.db.repositories.session_repository_impl import SqlAlchemySessionRepository
 from src.infrastructure.db.repositories.user_repository_impl import SqlAlchemyUserRepository
 from src.infrastructure.services.bcrypt_password_hasher import BcryptPasswordHasher
@@ -22,10 +34,34 @@ class Container:
         self.db = db_session
         self.user_repository = SqlAlchemyUserRepository(db_session)
         self.company_repository = SqlAlchemyCompanyRepository(db_session)
+        self.company_document_repository = SqlAlchemyCompanyDocumentRepository(db_session)
+        self.invoice_sheet_repository = SqlAlchemyInvoiceSheetRepository(db_session)
+        self.disbursement_repository = SqlAlchemyDisbursementRepository(db_session)
         self.session_repository = SqlAlchemySessionRepository(db_session)
         self.password_hasher = BcryptPasswordHasher()
         self.token_service = PyJwtTokenService()
         self.verification_service = MockIdentityVerificationService(self.user_repository)
+
+    @property
+    def execute_disbursement_use_case(self) -> ExecuteDisbursementUseCase:
+        return ExecuteDisbursementUseCase(
+            sheet_repository=self.invoice_sheet_repository,
+            company_repository=self.company_repository,
+            disbursement_repository=self.disbursement_repository,
+        )
+
+    @property
+    def process_invoice_sheet_use_case(self) -> ProcessInvoiceSheetUseCase:
+        return ProcessInvoiceSheetUseCase(
+            sheet_repository=self.invoice_sheet_repository,
+        )
+
+    @property
+    def verify_company_use_case(self) -> VerifyCompanyUseCase:
+        return VerifyCompanyUseCase(
+            user_repository=self.user_repository,
+            company_repository=self.company_repository,
+        )
 
     @property
     def register_user_use_case(self) -> RegisterUserUseCase:

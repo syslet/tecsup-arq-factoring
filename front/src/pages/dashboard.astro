@@ -1,14 +1,145 @@
 ---
-import AuthLayout from "../layouts/AuthLayout.astro";
-import { UserNavbar } from "../components/react/UserNavbar";
-import { DashboardView } from "../components/react/DashboardView";
+import "../styles/global.css";
 ---
 
-<AuthLayout title="Dashboard">
-  <div className="flex min-h-screen w-full flex-col">
-    <UserNavbar client:load />
-    <div className="flex-1">
-      <DashboardView client:load />
-    </div>
-  </div>
-</AuthLayout>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bandeja de Planillas | Factoring B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #0b0b0c;
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen flex-col text-gray-100">
+    <header class="border-b border-gray-800 bg-[#0c0c0e]/80 px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-xl font-bold tracking-tight text-emerald-400">Factoring B2B</span>
+          <span
+            class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400"
+            >Empresa Verificada</span
+          >
+        </div>
+        <div class="flex items-center gap-4 text-sm">
+          <span id="user-display" class="font-medium text-gray-300">Cargando usuario...</span>
+          <button id="btn-logout" class="text-xs font-semibold text-red-400 hover:underline"
+            >Cerrar Sesión</button
+          >
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-7xl flex-grow p-6">
+      <div class="mb-8 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-white">Bandeja de Planillas y Solicitudes</h1>
+          <p class="text-sm text-gray-400">
+            Gestiona y consulta el estado de tus cotizaciones y desembolsos de factoring.
+          </p>
+        </div>
+        <a
+          href="/sales/new"
+          class="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400"
+        >
+          + Cargar Nueva Planilla
+        </a>
+      </div>
+
+      <!-- Table of Invoice Sheets -->
+      <div class="overflow-hidden rounded-2xl border border-gray-800 bg-slate-900/90 shadow-xl">
+        <table class="w-full text-left text-sm text-gray-300">
+          <thead
+            class="border-b border-gray-800 bg-slate-950 text-xs font-semibold text-gray-400 uppercase"
+          >
+            <tr>
+              <th class="p-4">Código Planilla</th>
+              <th class="p-4">Facturas</th>
+              <th class="p-4">Monto Total</th>
+              <th class="p-4">Neto Desembolso</th>
+              <th class="p-4">Estado</th>
+              <th class="p-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="sheets-table-body" class="divide-y divide-gray-800">
+            <tr>
+              <td colspan="6" class="p-8 text-center text-gray-500">Cargando planillas...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <script>
+      import { apiClient } from "../adapters/api_client";
+      import { SalesAdapter } from "../adapters/api/salesAdapter";
+
+      async function initDashboard() {
+        try {
+          const userRes = await apiClient.get<{ user: any }>("/api/auth/me");
+          (document.getElementById("user-display") as HTMLElement).textContent =
+            `${userRes.user.full_name} (${userRes.user.company?.business_name || "N/A"})`;
+
+          if (userRes.user.verification_status === "PENDING_VERIFICATION") {
+            window.location.href = "/verification-pending";
+            return;
+          }
+
+          const sheetsRes = await SalesAdapter.listSheets();
+          const tbody = document.getElementById("sheets-table-body");
+          if (!tbody) return;
+
+          if (sheetsRes.sheets.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500">No registras planillas cargadas aún. ¡Haz clic en "+ Cargar Nueva Planilla" para iniciar!</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = sheetsRes.sheets
+            .map((s) => {
+              const statusClass =
+                s.status === "DISBURSED"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : "bg-blue-500/10 text-blue-400 border-blue-500/20";
+              return `
+              <tr class="hover:bg-slate-800/50 transition-colors">
+                <td class="p-4 font-mono font-bold text-white">${s.sheet_code}</td>
+                <td class="p-4">${s.invoices_count || 1} doc(s)</td>
+                <td class="p-4 font-semibold text-white">${s.currency} ${s.total_amount.toFixed(2)}</td>
+                <td class="p-4 font-bold text-emerald-400">${s.currency} ${s.net_disbursement.toFixed(2)}</td>
+                <td class="p-4">
+                  <span class="inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusClass}">
+                    ${s.status}
+                  </span>
+                </td>
+                <td class="p-4 text-right">
+                  <a href="/sales/${s.id}/quote" class="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700">Ver Cotización</a>
+                </td>
+              </tr>
+            `;
+            })
+            .join("");
+        } catch (e: any) {
+          if (e.message?.includes("Empresa no verificada")) {
+            window.location.href = "/verification-pending";
+          }
+        }
+      }
+
+      document.getElementById("btn-logout")?.addEventListener("click", () => {
+        localStorage.removeItem("factoring_access_token");
+        window.location.href = "/login";
+      });
+
+      initDashboard();
+    </script>
+  </body>
+</html>
