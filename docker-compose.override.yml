@@ -10,6 +10,7 @@ services:
     volumes:
       - ./back:/app
       - /app/.venv
+      - ./storage_data:/app/uploads
 
   frontend:
     build:
