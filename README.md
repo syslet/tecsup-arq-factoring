@@ -74,8 +74,6 @@ tecsup-arq-factoring/
 ├── db/                 # Configuración de base de datos PostgreSQL 15
 ├── front/              # Aplicación Frontend en Astro + TailwindCSS + React
 ├── db_data/            # Datos persistidos de base de datos local (Ignorado en Git)
-├── .localbrain/        # Cerebro local de la IA (Ignorado en Git)
-├── CLAUDE.md           # Guía de indexación para agentes de IA (Ignorado en Git)
 ├── README.md           # Este archivo (Guía para humanos)
 ├── docker-compose.yml  # Orquestador del entorno de desarrollo local
 └── .pre-commit-config.yaml # Configuración de linters automáticos

@@ -1,0 +1,6 @@
+# Allow native build scripts required by Astro's toolchain.
+# esbuild (Vite) and sharp (image optimization) ship prebuilt binaries
+# via postinstall; pnpm 11 blocks these by default.
+allowBuilds:
+  esbuild: true
+  sharp: true
