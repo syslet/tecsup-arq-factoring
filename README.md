@@ -228,7 +228,7 @@ sequenceDiagram
 ```
 
 ## Requerimientos funcionales del módulo “Desembolso”
-RF01: La plataforma marca la factura como negociada en SUNAT para evitar duplicidad de operaciones.
+RF01: La plataforma marca la factura como negociada en SUNAT para evitar duplicidad de operaciones.  
 
 RF02: Se realiza la transferencia del monto descontado a la cuenta del cliente.
 
