@@ -2,15 +2,22 @@ from flask import Blueprint, Response, g, jsonify, request
 from pydantic import ValidationError
 
 from src.application.use_cases.login_user import LoginCommand
-from src.application.use_cases.register_user import RegisterUserCommand
+from src.application.use_cases.register_user import CompanyRegisterData, RegisterUserCommand
 from src.domain.exceptions.auth_exceptions import (
+    AccountLockedException,
+    CompanyAlreadyExistsException,
     InactiveUserException,
+    InvalidCciException,
     InvalidCredentialsException,
+    InvalidDniException,
+    InvalidRucException,
     UserAlreadyExistsException,
+    WeakPasswordException,
 )
 from src.infrastructure.di.container import get_container
 from src.presentation.decorators.auth_decorator import login_required
 from src.presentation.schemas.auth_schemas import (
+    CompanyResponseSchema,
     LoginRequestSchema,
     RegisterRequestSchema,
     UserResponseSchema,
@@ -21,7 +28,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 @auth_bp.route("/register", methods=["POST"])
 def register() -> tuple[Response, int]:
-    """Registers a new user."""
+    """Registers a new legal representative and company onboarding data."""
     payload = request.get_json(silent=True) or {}
     try:
         data = RegisterRequestSchema(**payload)
@@ -30,19 +37,49 @@ def register() -> tuple[Response, int]:
 
     try:
         container = get_container()
+        company_data = None
+        if data.company:
+            company_data = CompanyRegisterData(
+                ruc=data.company.ruc,
+                business_name=data.company.business_name,
+                bank_name=data.company.bank_name,
+                bank_account_number=data.company.bank_account_number,
+                cci=data.company.cci,
+                currency=data.company.currency,
+            )
+
         command = RegisterUserCommand(
             email=data.email,
             password=data.password,
             full_name=data.full_name,
+            dni=data.dni,
+            phone=data.phone,
+            company=company_data,
         )
-        user = container.register_user_use_case.execute(command)
+        user, company = container.register_user_use_case.execute(command)
         assert user.id is not None
+
+        company_schema = None
+        if company and company.id:
+            company_schema = CompanyResponseSchema(
+                id=company.id,
+                ruc=company.ruc,
+                business_name=company.business_name,
+                bank_name=company.bank_name,
+                currency=company.currency.value,
+            )
+
         user_schema = UserResponseSchema(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
+            dni=user.dni,
+            phone=user.phone,
             role=user.role.value,
+            verification_status=user.verification_status.value,
             is_active=user.is_active,
+            is_locked=user.is_locked,
+            company=company_schema,
             created_at=user.created_at,
         )
         return jsonify(
@@ -51,13 +88,21 @@ def register() -> tuple[Response, int]:
                 "user": user_schema.model_dump(),
             }
         ), 201
-    except UserAlreadyExistsException as e:
+
+    except (
+        InvalidDniException,
+        InvalidRucException,
+        WeakPasswordException,
+        InvalidCciException,
+    ) as e:
+        return jsonify({"error": str(e)}), 400
+    except (UserAlreadyExistsException, CompanyAlreadyExistsException) as e:
         return jsonify({"error": str(e)}), 409
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login() -> tuple[Response, int]:
-    """Authenticates credentials and returns JWT access token."""
+    """Authenticates credentials (Email or DNI) and returns JWT access token."""
     payload = request.get_json(silent=True) or {}
     try:
         data = LoginRequestSchema(**payload)
@@ -70,20 +115,36 @@ def login() -> tuple[Response, int]:
         user_agent = request.headers.get("User-Agent")
 
         command = LoginCommand(
-            email=data.email,
+            identifier=data.identifier,
             password=data.password,
             ip_address=ip_address,
             user_agent=user_agent,
         )
         user, access_token, session = container.login_user_use_case.execute(command)
-
         assert user.id is not None
+
+        company = container.company_repository.find_by_user_id(user.id)
+        company_schema = None
+        if company and company.id:
+            company_schema = CompanyResponseSchema(
+                id=company.id,
+                ruc=company.ruc,
+                business_name=company.business_name,
+                bank_name=company.bank_name,
+                currency=company.currency.value,
+            )
+
         user_schema = UserResponseSchema(
             id=user.id,
             email=user.email,
             full_name=user.full_name,
+            dni=user.dni,
+            phone=user.phone,
             role=user.role.value,
+            verification_status=user.verification_status.value,
             is_active=user.is_active,
+            is_locked=user.is_locked,
+            company=company_schema,
             created_at=user.created_at,
         )
 
@@ -95,8 +156,11 @@ def login() -> tuple[Response, int]:
                 "user": user_schema.model_dump(),
             }
         ), 200
-    except (InvalidCredentialsException, InactiveUserException) as e:
+
+    except InvalidCredentialsException as e:
         return jsonify({"error": str(e)}), 401
+    except (InactiveUserException, AccountLockedException) as e:
+        return jsonify({"error": str(e)}), 403
 
 
 @auth_bp.route("/logout", methods=["POST"])
@@ -121,13 +185,29 @@ def get_me() -> tuple[Response, int]:
         return jsonify({"error": "Unauthorized"}), 401
 
     assert user.id is not None
-    user_schema = UserResponseSchema(
+    container = get_container()
+    company = container.company_repository.find_by_user_id(user.id)
+    company_schema = None
+    if company and company.id:
+        company_schema = CompanyResponseSchema(
+            id=company.id,
+            ruc=company.ruc,
+            business_name=company.business_name,
+            bank_name=company.bank_name,
+            currency=company.currency.value,
+        )
 
+    user_schema = UserResponseSchema(
         id=user.id,
         email=user.email,
         full_name=user.full_name,
+        dni=user.dni,
+        phone=user.phone,
         role=user.role.value,
+        verification_status=user.verification_status.value,
         is_active=user.is_active,
+        is_locked=user.is_locked,
+        company=company_schema,
         created_at=user.created_at,
     )
     return jsonify({"user": user_schema.model_dump()}), 200

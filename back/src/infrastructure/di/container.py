@@ -5,10 +5,14 @@ from src.application.use_cases.get_current_user import GetCurrentUserUseCase
 from src.application.use_cases.login_user import LoginUserUseCase
 from src.application.use_cases.logout_user import LogoutUserUseCase
 from src.application.use_cases.register_user import RegisterUserUseCase
+from src.infrastructure.db.repositories.company_repository_impl import SqlAlchemyCompanyRepository
 from src.infrastructure.db.repositories.session_repository_impl import SqlAlchemySessionRepository
 from src.infrastructure.db.repositories.user_repository_impl import SqlAlchemyUserRepository
 from src.infrastructure.services.bcrypt_password_hasher import BcryptPasswordHasher
 from src.infrastructure.services.jwt_token_service import PyJwtTokenService
+from src.infrastructure.services.mock_identity_verification_service import (
+    MockIdentityVerificationService,
+)
 
 
 class Container:
@@ -17,15 +21,19 @@ class Container:
     def __init__(self, db_session: Session) -> None:
         self.db = db_session
         self.user_repository = SqlAlchemyUserRepository(db_session)
+        self.company_repository = SqlAlchemyCompanyRepository(db_session)
         self.session_repository = SqlAlchemySessionRepository(db_session)
         self.password_hasher = BcryptPasswordHasher()
         self.token_service = PyJwtTokenService()
+        self.verification_service = MockIdentityVerificationService(self.user_repository)
 
     @property
     def register_user_use_case(self) -> RegisterUserUseCase:
         return RegisterUserUseCase(
             user_repository=self.user_repository,
+            company_repository=self.company_repository,
             password_hasher=self.password_hasher,
+            verification_service=self.verification_service,
         )
 
     @property

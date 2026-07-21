@@ -1,0 +1,43 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es" class="h-full bg-slate-950 font-sans text-slate-100 antialiased">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | Plataforma Factoring B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="relative flex min-h-full flex-col justify-between overflow-x-hidden bg-slate-950">
+    {/* Subtle Glow Backgrounds */}
+    <div
+      class="pointer-events-none fixed top-0 left-1/2 h-[300px] w-[600px] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-[120px]"
+    >
+    </div>
+    <div
+      class="pointer-events-none fixed right-0 bottom-0 h-[300px] w-[400px] rounded-full bg-cyan-500/5 blur-[100px]"
+    >
+    </div>
+
+    <main class="relative z-10 flex flex-grow items-center justify-center p-4">
+      <slot />
+    </main>
+
+    <footer class="relative z-10 border-t border-slate-900 py-6 text-center text-xs text-slate-600">
+      <p>© 2026 Factoring Core System. Arquitectura Onion & Clean Architecture.</p>
+    </footer>
+  </body>
+</html>
