@@ -1,0 +1,310 @@
+---
+import "../../styles/global.css";
+
+const { id } = Astro.params;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cotización Factoring #{id} | Factoring B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #0b0b0c;
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen flex-col text-gray-100">
+    <header class="border-b border-gray-800 bg-[#0c0c0e]/80 px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <a href="/dashboard" class="text-xl font-bold tracking-tight text-emerald-400"
+          >&larr; Volver al Dashboard</a
+        >
+        <span class="text-sm font-semibold text-gray-400"
+          >Resumen y Cotización de Planilla #{id}</span
+        >
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-5xl flex-grow p-6">
+      <div
+        id="quote-card"
+        class="rounded-2xl border border-gray-800 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-md"
+      >
+        <div class="mb-6 flex items-center justify-between border-b border-gray-800 pb-4">
+          <div>
+            <h1 class="text-2xl font-bold text-white">Cotización de Factoring</h1>
+            <p id="sheet-code-display" class="font-mono text-xs text-gray-400">Cargando...</p>
+          </div>
+          <span
+            id="status-badge"
+            class="rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400"
+            >QUOTED</span
+          >
+        </div>
+
+        <div
+          id="error-box"
+          class="mb-4 hidden rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs font-medium text-red-400"
+        >
+        </div>
+        <div
+          id="info-box"
+          class="mb-4 hidden rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs font-medium text-emerald-400"
+        >
+        </div>
+
+        <!-- Breakdown Grid -->
+        <div class="mb-8 grid grid-cols-4 gap-4">
+          <div class="rounded-xl border border-gray-800 bg-slate-950 p-4">
+            <span class="block text-xs font-semibold text-gray-400 uppercase"
+              >Monto Total Facturas</span
+            >
+            <span id="total-amount" class="text-xl font-bold text-white">S/ 0.00</span>
+          </div>
+          <div class="rounded-xl border border-gray-800 bg-slate-950 p-4">
+            <span class="block text-xs font-semibold text-gray-400 uppercase"
+              >Tasa Mensual / Adelanto</span
+            >
+            <span id="rate-display" class="text-xl font-bold text-cyan-400">2.0% TEM</span>
+          </div>
+          <div class="rounded-xl border border-gray-800 bg-slate-950 p-4">
+            <span class="block text-xs font-semibold text-gray-400 uppercase"
+              >Intereses + Comisión</span
+            >
+            <span id="fees-amount" class="text-xl font-bold text-amber-400">S/ 0.00</span>
+          </div>
+          <div class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+            <span class="block text-xs font-semibold text-emerald-400 uppercase"
+              >Neto a Desembolsar</span
+            >
+            <span id="net-disbursement" class="text-2xl font-black text-emerald-400">S/ 0.00</span>
+          </div>
+        </div>
+
+        <!-- Negotiation Section -->
+        <div id="negotiation-panel" class="mb-8 hidden rounded-xl border border-amber-500/30 bg-amber-500/5 p-6">
+          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">Solicitar Ajuste / Negociación de Tasa</h3>
+          <p class="text-xs text-gray-400 mb-4">Propón una nueva tasa mensual para evaluar una contraoferta o aprobación por tu ejecutivo.</p>
+          
+          <form id="negotiation-form" class="flex items-end gap-4">
+            <div class="w-48">
+              <label class="block text-xs text-gray-400 mb-1">Tasa Mensual Deseada (%)</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0.5"
+                max="5.0"
+                id="input-requested-rate"
+                required
+                value="1.8"
+                class="w-full rounded-lg border border-gray-700 bg-slate-950 p-2.5 text-xs text-white"
+              />
+            </div>
+            <div class="flex-grow">
+              <label class="block text-xs text-gray-400 mb-1">Justificación / Notas (opcional)</label>
+              <input
+                type="text"
+                id="input-negotiation-notes"
+                placeholder="Ej. Volumen recurrente o tasa preferencial"
+                class="w-full rounded-lg border border-gray-700 bg-slate-950 p-2.5 text-xs text-white"
+              />
+            </div>
+            <button
+              type="submit"
+              class="rounded-lg bg-amber-500 px-5 py-2.5 text-xs font-bold text-black hover:bg-amber-400"
+            >
+              Enviar Propuesta
+            </button>
+          </form>
+        </div>
+
+        <!-- Invoices List Breakdown -->
+        <h2 class="mb-3 text-base font-bold text-white">Detalle de Facturas Evaluadas</h2>
+        <div class="mb-8 overflow-hidden rounded-xl border border-gray-800 bg-slate-950">
+          <table class="w-full text-left text-xs text-gray-300">
+            <thead
+              class="border-b border-gray-800 bg-slate-900 font-semibold text-gray-400 uppercase"
+            >
+              <tr>
+                <th class="p-3">Factura</th>
+                <th class="p-3">Aceptante (RUC)</th>
+                <th class="p-3">Monto</th>
+                <th class="p-3">Días Venc.</th>
+                <th class="p-3">Estado SUNAT</th>
+                <th class="p-3">Aprobación</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody" class="divide-y divide-gray-800">
+              <tr
+                ><td colspan="6" class="p-4 text-center text-gray-500">Cargando facturas...</td></tr
+              >
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action Button -->
+        <div
+          id="action-bar"
+          class="flex items-center justify-between border-t border-gray-800 pt-4"
+        >
+          <a
+            href="/dashboard"
+            class="rounded-xl border border-gray-800 bg-slate-950 px-5 py-3 text-sm font-semibold text-gray-300 hover:bg-gray-800"
+          >
+            Volver
+          </a>
+          <div class="flex gap-3">
+            <button
+              id="btn-toggle-negotiate"
+              class="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm font-bold text-amber-400 hover:bg-amber-500/20"
+            >
+              Negociar Tasa
+            </button>
+            <button
+              id="btn-accept-disburse"
+              class="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400"
+            >
+              Aceptar Cotización y Solicitar Desembolso &rarr;
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script data-sheet-id={id}>
+      import { SalesAdapter } from "../../adapters/api/salesAdapter";
+      import { DisbursementAdapter } from "../../adapters/api/disbursementAdapter";
+
+      const sheetId = parseInt(document.currentScript?.getAttribute("data-sheet-id") || "0", 10);
+      const errorBox = document.getElementById("error-box");
+      const infoBox = document.getElementById("info-box");
+      const btnAccept = document.getElementById("btn-accept-disburse");
+      const btnToggleNegotiate = document.getElementById("btn-toggle-negotiate");
+      const negotiationPanel = document.getElementById("negotiation-panel");
+      const negotiationForm = document.getElementById("negotiation-form");
+
+      btnToggleNegotiate?.addEventListener("click", () => {
+        negotiationPanel?.classList.toggle("hidden");
+      });
+
+      async function loadQuote() {
+        try {
+          const res = await SalesAdapter.getSheetById(sheetId);
+          const sheet = res.sheet;
+
+          (document.getElementById("sheet-code-display") as HTMLElement).textContent =
+            sheet.sheet_code;
+          const statusBadge = document.getElementById("status-badge") as HTMLElement;
+          statusBadge.textContent = sheet.status;
+
+          // Status Badge styling
+          if (sheet.status === "QUOTED") {
+            statusBadge.className = "rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400";
+          } else if (sheet.status === "NEGOTIATION_REQUESTED") {
+            statusBadge.className = "rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400";
+          } else if (sheet.status === "COUNTER_OFFERED") {
+            statusBadge.className = "rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400";
+          } else if (sheet.status === "APPROVED" || sheet.status === "DISBURSED") {
+            statusBadge.className = "rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400";
+          }
+
+          (document.getElementById("total-amount") as HTMLElement).textContent =
+            `${sheet.currency} ${sheet.total_amount.toFixed(2)}`;
+          (document.getElementById("rate-display") as HTMLElement).textContent =
+            `${(sheet.monthly_rate * 100).toFixed(1)}% TEM`;
+          (document.getElementById("fees-amount") as HTMLElement).textContent =
+            `${sheet.currency} ${(sheet.interest_fee + sheet.commission).toFixed(2)}`;
+          (document.getElementById("net-disbursement") as HTMLElement).textContent =
+            `${sheet.currency} ${sheet.net_disbursement.toFixed(2)}`;
+
+          if (sheet.status === "DISBURSED") {
+            if (btnAccept) {
+              (btnAccept as HTMLButtonElement).disabled = true;
+              btnAccept.textContent = "Planilla Ya Desembolsada";
+              btnAccept.className =
+                "rounded-xl bg-gray-700 px-6 py-3 text-sm font-bold text-gray-400 cursor-not-allowed";
+            }
+            if (btnToggleNegotiate) btnToggleNegotiate.classList.add("hidden");
+          }
+
+          const tbody = document.getElementById("invoices-tbody");
+          if (tbody && sheet.invoices) {
+            tbody.innerHTML = sheet.invoices
+              .map(
+                (inv) => `
+              <tr class="hover:bg-slate-900/50">
+                <td class="p-3 font-mono font-bold text-white">${inv.invoice_number}</td>
+                <td class="p-3">${inv.debtor_name} (${inv.debtor_ruc})</td>
+                <td class="p-3 font-semibold text-white">${inv.currency} ${inv.amount.toFixed(2)}</td>
+                <td class="p-3">${inv.days_to_maturity} días</td>
+                <td class="p-3"><span class="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">${inv.sunat_status}</span></td>
+                <td class="p-3">
+                  ${
+                    inv.is_approved
+                      ? `<span class="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-400">APROBADA</span>`
+                      : `<span class="rounded bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-400">RECHAZADA: ${inv.rejection_reason || ""}</span>`
+                  }
+                </td>
+              </tr>
+            `
+              )
+              .join("");
+          }
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al cargar la cotización";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      }
+
+      negotiationForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBox?.classList.add("hidden");
+        infoBox?.classList.add("hidden");
+
+        const requestedRateInput = (document.getElementById("input-requested-rate") as HTMLInputElement).value;
+        const notes = (document.getElementById("input-negotiation-notes") as HTMLInputElement).value;
+        const requestedRate = parseFloat(requestedRateInput) / 100.0;
+
+        try {
+          const res = await SalesAdapter.negotiateRate(sheetId, requestedRate, notes);
+          if (infoBox) {
+            infoBox.textContent = `${res.message}. Estado actual: ${res.status}`;
+            infoBox.classList.remove("hidden");
+          }
+          negotiationPanel?.classList.add("hidden");
+          loadQuote();
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al solicitar negociación";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      });
+
+      btnAccept?.addEventListener("click", async () => {
+        try {
+          const res = await DisbursementAdapter.acceptAndDisburse(sheetId);
+          window.location.href = `/disbursements/${res.disbursement.id}`;
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al ejecutar el desembolso";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      });
+
+      loadQuote();
+    </script>
+  </body>
+</html>

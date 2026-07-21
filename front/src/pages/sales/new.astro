@@ -1,0 +1,342 @@
+---
+import "../../styles/global.css";
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carga de Planilla | Factoring B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #0b0b0c;
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen flex-col text-gray-100">
+    <header class="border-b border-gray-800 bg-[#0c0c0e]/80 px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <a href="/dashboard" class="text-xl font-bold tracking-tight text-emerald-400"
+          >&larr; Volver al Dashboard</a
+        >
+        <span class="text-sm font-semibold text-gray-400"
+          >Carga de Facturas / Planilla (1-90 Docs, ≤180 días)</span
+        >
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-5xl flex-grow p-6">
+      <div
+        class="rounded-2xl border border-gray-800 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-md"
+      >
+        <h1 class="mb-2 text-2xl font-bold text-white">Registrar Planilla de Facturas</h1>
+        <p class="mb-6 text-sm text-gray-400">
+          Ingresa las facturas electrónicas que deseas cotizar mediante registro manual o carga masiva.
+        </p>
+
+        <!-- Mode Navigation Tabs -->
+        <div class="mb-6 flex space-x-3 border-b border-gray-800 pb-3">
+          <button
+            id="tab-manual"
+            type="button"
+            class="rounded-xl bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30"
+          >
+            Ingreso Manual (1 a 1)
+          </button>
+          <button
+            id="tab-batch"
+            type="button"
+            class="rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-slate-700"
+          >
+            Carga Masiva (CSV / JSON)
+          </button>
+        </div>
+
+        <div
+          id="error-box"
+          class="mb-4 hidden rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs font-medium text-red-400"
+        >
+        </div>
+
+        <!-- Manual Mode Form -->
+        <form id="new-sheet-form" class="space-y-6">
+          <div class="w-48">
+            <label class="mb-1 block text-xs font-semibold text-gray-400 uppercase"
+              >Moneda de la Planilla</label
+            >
+            <select
+              id="currency"
+              class="w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            >
+              <option value="PEN">Soles (PEN)</option>
+              <option value="USD">Dólares (USD)</option>
+            </select>
+          </div>
+
+          <!-- Dynamic Invoices Table -->
+          <div class="overflow-hidden rounded-xl border border-gray-800 bg-slate-950">
+            <table class="w-full text-left text-xs text-gray-300">
+              <thead
+                class="border-b border-gray-800 bg-slate-900 font-semibold text-gray-400 uppercase"
+              >
+                <tr>
+                  <th class="p-3">#</th>
+                  <th class="p-3">N° Factura</th>
+                  <th class="p-3">RUC Aceptante</th>
+                  <th class="p-3">Razón Social Aceptante</th>
+                  <th class="p-3">Monto</th>
+                  <th class="p-3">F. Emisión</th>
+                  <th class="p-3">F. Vencimiento</th>
+                  <th class="p-3 text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-rows" class="divide-y divide-gray-800">
+                <!-- Dynamic rows inserted here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <button
+              type="button"
+              id="btn-add-row"
+              class="rounded-xl border border-gray-800 bg-slate-800 px-4 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-gray-700"
+            >
+              + Agregar Factura
+            </button>
+            <button
+              type="submit"
+              class="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400"
+            >
+              Procesar y Cotizar Planilla &rarr;
+            </button>
+          </div>
+        </form>
+
+        <!-- Batch Mode Container (Dropzone) -->
+        <form id="batch-sheet-form" class="hidden space-y-6">
+          <div class="w-48">
+            <label class="mb-1 block text-xs font-semibold text-gray-400 uppercase"
+              >Moneda de la Planilla</label
+            >
+            <select
+              id="batch-currency"
+              class="w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            >
+              <option value="PEN">Soles (PEN)</option>
+              <option value="USD">Dólares (USD)</option>
+            </select>
+          </div>
+
+          <!-- Dropzone Area -->
+          <div
+            id="dropzone"
+            class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-700 bg-slate-950/60 p-10 text-center hover:border-emerald-500/50 cursor-pointer transition-all"
+          >
+            <svg class="mb-4 h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p class="text-sm font-semibold text-gray-200">Arrastra tu archivo CSV o JSON aquí</p>
+            <p class="mt-1 text-xs text-gray-400">O haz clic para seleccionar un archivo (Max. 90 comprobantes)</p>
+            <input type="file" id="batch-file-input" accept=".csv, .json" class="hidden" />
+            <div id="file-info" class="mt-4 hidden rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 text-xs text-emerald-400 font-medium"></div>
+          </div>
+
+          <div class="flex items-center justify-end">
+            <button
+              type="submit"
+              id="btn-process-batch"
+              disabled
+              class="rounded-xl bg-emerald-500/50 px-6 py-3 text-sm font-bold text-black cursor-not-allowed transition-all"
+            >
+              Subir y Procesar Planilla Masiva &rarr;
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <script>
+      import { SalesAdapter } from "../../adapters/api/salesAdapter";
+
+      const tabManual = document.getElementById("tab-manual");
+      const tabBatch = document.getElementById("tab-batch");
+      const manualForm = document.getElementById("new-sheet-form");
+      const batchForm = document.getElementById("batch-sheet-form");
+      const rowsTbody = document.getElementById("invoices-rows");
+      const errorBox = document.getElementById("error-box");
+      const dropzone = document.getElementById("dropzone");
+      const batchFileInput = document.getElementById("batch-file-input") as HTMLInputElement;
+      const fileInfo = document.getElementById("file-info");
+      const btnProcessBatch = document.getElementById("btn-process-batch") as HTMLButtonElement;
+
+      let invoiceCount = 0;
+      let selectedFile: File | null = null;
+
+      // Tab switching
+      tabManual?.addEventListener("click", () => {
+        tabManual.className = "rounded-xl bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30";
+        tabBatch.className = "rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-slate-700";
+        manualForm?.classList.remove("hidden");
+        batchForm?.classList.add("hidden");
+        errorBox?.classList.add("hidden");
+      });
+
+      tabBatch?.addEventListener("click", () => {
+        tabBatch.className = "rounded-xl bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30";
+        tabManual.className = "rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-slate-700";
+        batchForm?.classList.remove("hidden");
+        manualForm?.classList.add("hidden");
+        errorBox?.classList.add("hidden");
+      });
+
+      // Dropzone functionality
+      dropzone?.addEventListener("click", () => batchFileInput?.click());
+
+      dropzone?.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("border-emerald-500");
+      });
+
+      dropzone?.addEventListener("dragleave", () => {
+        dropzone.classList.remove("border-emerald-500");
+      });
+
+      dropzone?.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("border-emerald-500");
+        if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+          handleFileSelected(e.dataTransfer.files[0]);
+        }
+      });
+
+      batchFileInput?.addEventListener("change", () => {
+        if (batchFileInput.files && batchFileInput.files[0]) {
+          handleFileSelected(batchFileInput.files[0]);
+        }
+      });
+
+      function handleFileSelected(file: File) {
+        if (!file.name.endsWith(".csv") && !file.name.endsWith(".json")) {
+          if (errorBox) {
+            errorBox.textContent = "Formato no válido. Solo se permiten archivos .csv y .json";
+            errorBox.classList.remove("hidden");
+          }
+          return;
+        }
+        selectedFile = file;
+        if (fileInfo) {
+          fileInfo.textContent = `Archivo seleccionado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          fileInfo.classList.remove("hidden");
+        }
+        if (btnProcessBatch) {
+          btnProcessBatch.disabled = false;
+          btnProcessBatch.className = "rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-all";
+        }
+      }
+
+      // Batch form submit
+      batchForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBox?.classList.add("hidden");
+
+        if (!selectedFile) {
+          if (errorBox) {
+            errorBox.textContent = "Por favor selecciona un archivo CSV o JSON.";
+            errorBox.classList.remove("hidden");
+          }
+          return;
+        }
+
+        const currency = (document.getElementById("batch-currency") as HTMLSelectElement).value;
+
+        try {
+          const res = await SalesAdapter.uploadBatchSheet(selectedFile, currency);
+          window.location.href = `/sales/${res.sheet.id}/quote`;
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al procesar archivo masivo";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      });
+
+      function addRow(defaultVals?: any) {
+        invoiceCount++;
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-900/50";
+        const todayStr = new Date().toISOString().split("T")[0];
+        const nextMonthStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .split("T")[0];
+
+        tr.innerHTML = `
+          <td class="p-3 font-bold text-gray-400">${invoiceCount}</td>
+          <td class="p-3"><input type="text" required class="inv-num w-full rounded-lg border border-gray-800 bg-slate-900 p-2 text-xs text-white" value="${defaultVals?.num || "F001-000" + invoiceCount}" /></td>
+          <td class="p-3"><input type="text" maxlength="11" required class="inv-ruc w-full rounded-lg border border-gray-800 bg-slate-900 p-2 text-xs text-white" value="${defaultVals?.ruc || "20999999999"}" /></td>
+          <td class="p-3"><input type="text" required class="inv-name w-full rounded-lg border border-gray-800 bg-slate-900 p-2 text-xs text-white" value="${defaultVals?.name || "Cliente Deudor S.A."}" /></td>
+          <td class="p-3"><input type="number" step="0.01" required class="inv-amount w-full rounded-lg border border-gray-800 bg-slate-900 p-2 text-xs text-white" value="${defaultVals?.amount || "10000.00"}" /></td>
+          <td class="p-3"><input type="date" required class="inv-issue w-full rounded-lg border border-gray-800 bg-slate-900 p-2 text-xs text-white" value="${defaultVals?.issue || todayStr}" /></td>
+          <td class="p-3"><input type="date" required class="inv-due w-full rounded-lg border border-gray-800 bg-slate-900 p-2 text-xs text-white" value="${defaultVals?.due || nextMonthStr}" /></td>
+          <td class="p-3 text-center"><button type="button" class="btn-del text-red-400 hover:text-red-300 font-bold">&times;</button></td>
+        `;
+
+        tr.querySelector(".btn-del")?.addEventListener("click", () => {
+          tr.remove();
+        });
+
+        rowsTbody?.appendChild(tr);
+      }
+
+      // Initial default row
+      addRow();
+
+      document.getElementById("btn-add-row")?.addEventListener("click", () => addRow());
+
+      document.getElementById("new-sheet-form")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBox?.classList.add("hidden");
+
+        const currency = (document.getElementById("currency") as HTMLSelectElement).value;
+        const rows = rowsTbody?.querySelectorAll("tr") || [];
+
+        if (rows.length === 0 || rows.length > 90) {
+          if (errorBox) {
+            errorBox.textContent = "La planilla debe contener entre 1 y 90 facturas.";
+            errorBox.classList.remove("hidden");
+          }
+          return;
+        }
+
+        const invoicesPayload: any[] = [];
+        rows.forEach((r) => {
+          invoicesPayload.push({
+            invoice_number: (r.querySelector(".inv-num") as HTMLInputElement).value,
+            debtor_ruc: (r.querySelector(".inv-ruc") as HTMLInputElement).value,
+            debtor_name: (r.querySelector(".inv-name") as HTMLInputElement).value,
+            amount: parseFloat((r.querySelector(".inv-amount") as HTMLInputElement).value),
+            issue_date: (r.querySelector(".inv-issue") as HTMLInputElement).value,
+            due_date: (r.querySelector(".inv-due") as HTMLInputElement).value,
+          });
+        });
+
+        try {
+          const res = await SalesAdapter.createSheet({ currency, invoices: invoicesPayload });
+          window.location.href = `/sales/${res.sheet.id}/quote`;
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al procesar planilla";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

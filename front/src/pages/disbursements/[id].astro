@@ -1,0 +1,141 @@
+---
+import "../../styles/global.css";
+
+const { id } = Astro.params;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comprobante de Desembolso #{id} | Factoring B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #0b0b0c;
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen flex-col text-gray-100">
+    <header class="border-b border-gray-800 bg-[#0c0c0e]/80 px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <a href="/dashboard" class="text-xl font-bold tracking-tight text-emerald-400"
+          >&larr; Volver al Dashboard</a
+        >
+        <span class="text-sm font-semibold text-gray-400">Comprobante de Operación #{id}</span>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-2xl flex-grow p-6">
+      <div
+        class="rounded-2xl border border-emerald-500/30 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-md"
+      >
+        <!-- Success Header -->
+        <div class="mb-8 border-b border-gray-800 pb-6 text-center">
+          <div
+            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+          >
+            <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-bold text-white">¡Desembolso Ejecutado con Éxito!</h1>
+          <p class="mt-1 text-xs font-semibold text-emerald-400">
+            Anotación en Cuenta CAVALI Registrada
+          </p>
+        </div>
+
+        <div
+          id="error-box"
+          class="mb-4 hidden rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-xs font-medium text-red-400"
+        >
+        </div>
+
+        <!-- Details Card -->
+        <div
+          id="disb-details"
+          class="space-y-4 rounded-xl border border-gray-800 bg-slate-950 p-6 text-sm"
+        >
+          <div class="flex justify-between border-b border-gray-900 pb-2">
+            <span class="text-gray-400">Código Anotación (CAVALI/RADIAN):</span>
+            <span id="annotation-code" class="font-mono font-bold text-emerald-400"
+              >Cargando...</span
+            >
+          </div>
+          <div class="flex justify-between border-b border-gray-900 pb-2">
+            <span class="text-gray-400">Monto Neto Transferido:</span>
+            <span id="disb-amount" class="text-lg font-bold text-white">S/ 0.00</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-900 pb-2">
+            <span class="text-gray-400">Banco Destino:</span>
+            <span id="bank-name" class="font-semibold text-gray-200">-</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-900 pb-2">
+            <span class="text-gray-400">N° Cuenta Bancaria:</span>
+            <span id="account-num" class="font-mono text-gray-200">-</span>
+          </div>
+          <div class="flex justify-between border-b border-gray-900 pb-2">
+            <span class="text-gray-400">CCI de Abono:</span>
+            <span id="cci-code" class="font-mono text-gray-200">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-400">Fecha / Hora Operación:</span>
+            <span id="executed-at" class="text-xs text-gray-400">-</span>
+          </div>
+        </div>
+
+        <div class="mt-8 flex gap-4">
+          <a
+            href="/dashboard"
+            class="w-full rounded-xl bg-emerald-500 py-3 text-center text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400"
+          >
+            Ir a la Bandeja Principal
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <script data-disb-id={id}>
+      import { DisbursementAdapter } from "../../adapters/api/disbursementAdapter";
+
+      const disbId = parseInt(document.currentScript?.getAttribute("data-disb-id") || "0", 10);
+      const errorBox = document.getElementById("error-box");
+
+      async function loadDisbursement() {
+        try {
+          const res = await DisbursementAdapter.getDisbursementById(disbId);
+          const d = res.disbursement;
+
+          (document.getElementById("annotation-code") as HTMLElement).textContent =
+            d.annotation_code;
+          (document.getElementById("disb-amount") as HTMLElement).textContent =
+            `${d.currency} ${d.amount.toFixed(2)}`;
+          (document.getElementById("bank-name") as HTMLElement).textContent = d.bank_name;
+          (document.getElementById("account-num") as HTMLElement).textContent =
+            d.bank_account_number;
+          (document.getElementById("cci-code") as HTMLElement).textContent = d.cci;
+          (document.getElementById("executed-at") as HTMLElement).textContent = d.executed_at
+            ? new Date(d.executed_at).toLocaleString()
+            : new Date().toLocaleString();
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al cargar el comprobante";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      }
+
+      loadDisbursement();
+    </script>
+  </body>
+</html>

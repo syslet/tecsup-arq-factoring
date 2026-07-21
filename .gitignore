@@ -4,8 +4,11 @@ CLAUDE.md
 .ag/
 .scratch/
 
-# --- Database ---
+# --- Database & Local Uploads ---
 db_data/
+storage_data/
+uploads/
+back/uploads/
 
 # --- Python (Backend) ---
 __pycache__/

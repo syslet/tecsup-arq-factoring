@@ -13,6 +13,9 @@ from flask_cors import CORS  # noqa: E402
 from src.infrastructure.db.migrator import init_db_and_seed  # noqa: E402
 from src.infrastructure.db.session import init_app_db  # noqa: E402
 from src.presentation.routes.auth_routes import auth_bp  # noqa: E402
+from src.presentation.routes.disbursement_routes import disbursement_bp  # noqa: E402
+from src.presentation.routes.onboarding_routes import onboarding_bp  # noqa: E402
+from src.presentation.routes.sales_routes import sales_bp  # noqa: E402
 
 
 def create_app() -> Flask:
@@ -29,6 +32,9 @@ def create_app() -> Flask:
 
     # Register Blueprints
     _app.register_blueprint(auth_bp)
+    _app.register_blueprint(onboarding_bp)
+    _app.register_blueprint(sales_bp)
+    _app.register_blueprint(disbursement_bp)
 
     @_app.errorhandler(404)
     def resource_not_found(_e: Exception) -> tuple[Response, int]:
