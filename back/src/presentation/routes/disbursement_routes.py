@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, jsonify
+from flask import Blueprint, Response, g, jsonify
 
 from src.infrastructure.di.container import get_container
 from src.presentation.decorators.verified_company_decorator import require_verified_company
@@ -77,3 +77,36 @@ def get_disbursement_by_id(disbursement_id: int) -> tuple[Response, int]:
         ),
         200,
     )
+
+
+@disbursement_bp.route("/disbursements", methods=["GET"])
+@require_verified_company
+def list_disbursements() -> tuple[Response, int]:
+    """Retrieves all disbursements for the logged in user's company."""
+    user = getattr(g, "current_user", None)
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    container = get_container()
+    company = container.company_repository.find_by_user_id(user.id)
+    if not company or not company.id:
+        return jsonify({"error": "No company record associated with current user"}), 404
+
+    disbursements = container.list_disbursements_use_case.execute(company.id)
+    result = [
+        {
+            "id": d.id,
+            "sheet_id": d.sheet_id,
+            "annotation_code": d.annotation_code,
+            "amount": d.amount,
+            "currency": d.currency.value,
+            "bank_name": d.bank_name,
+            "bank_account_number": d.bank_account_number,
+            "cci": d.cci,
+            "status": d.status,
+            "executed_at": d.executed_at.isoformat() if d.executed_at else None,
+        }
+        for d in disbursements
+    ]
+    return jsonify({"disbursements": result}), 200
+

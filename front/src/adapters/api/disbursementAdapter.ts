@@ -28,4 +28,8 @@ export class DisbursementAdapter {
   static async getDisbursementById(id: number): Promise<{ disbursement: DisbursementDTO }> {
     return apiClient.get<{ disbursement: DisbursementDTO }>(`/api/v1/disbursements/${id}`);
   }
+
+  static async getDisbursementsList(): Promise<{ disbursements: DisbursementDTO[] }> {
+    return apiClient.get<{ disbursements: DisbursementDTO[] }>("/api/v1/disbursements");
+  }
 }

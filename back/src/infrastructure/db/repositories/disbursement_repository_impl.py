@@ -36,6 +36,17 @@ class SqlAlchemyDisbursementRepository(IDisbursementRepository):
         model = self._db.query(DisbursementModel).filter_by(id=disbursement_id).first()
         return self._to_entity(model) if model else None
 
+    def find_by_company_id(self, company_id: int) -> list[Disbursement]:
+        from src.infrastructure.db.models import InvoiceSheetModel
+        models = (
+            self._db.query(DisbursementModel)
+            .join(InvoiceSheetModel, DisbursementModel.sheet_id == InvoiceSheetModel.id)
+            .filter(InvoiceSheetModel.company_id == company_id)
+            .order_by(DisbursementModel.executed_at.desc())
+            .all()
+        )
+        return [self._to_entity(m) for m in models]
+
     def _to_entity(self, model: DisbursementModel) -> Disbursement:
         return Disbursement(
             id=model.id,

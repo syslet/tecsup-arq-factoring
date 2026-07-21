@@ -20,3 +20,8 @@ class IDisbursementRepository(ABC):
     def find_by_id(self, disbursement_id: int) -> Disbursement | None:
         """Finds a disbursement by ID."""
         pass
+
+    @abstractmethod
+    def find_by_company_id(self, company_id: int) -> list[Disbursement]:
+        """Finds all disbursements for a company."""
+        pass
