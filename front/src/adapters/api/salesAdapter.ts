@@ -63,4 +63,40 @@ export class SalesAdapter {
   static async listSheets(): Promise<{ sheets: InvoiceSheetDTO[] }> {
     return apiClient.get<{ sheets: InvoiceSheetDTO[] }>("/api/v1/sales/sheets");
   }
+
+  static async uploadBatchSheet(
+    file: File,
+    currency: string = "PEN"
+  ): Promise<{ message: string; sheet: InvoiceSheetDTO }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("currency", currency);
+    return apiClient.postForm<{ message: string; sheet: InvoiceSheetDTO }>(
+      "/api/v1/sales/sheets/upload-batch",
+      formData
+    );
+  }
+
+  static async negotiateRate(
+    sheetId: number,
+    requestedRate: number,
+    notes?: string
+  ): Promise<{ message: string; status: string; sheet: InvoiceSheetDTO }> {
+    return apiClient.post<{ message: string; status: string; sheet: InvoiceSheetDTO }>(
+      `/api/v1/sales/sheets/${sheetId}/negotiate`,
+      { requested_rate: requestedRate, notes }
+    );
+  }
+
+  static async respondNegotiation(
+    sheetId: number,
+    accepted: boolean,
+    counterRate?: number,
+    notes?: string
+  ): Promise<{ message: string; sheet: InvoiceSheetDTO }> {
+    return apiClient.post<{ message: string; sheet: InvoiceSheetDTO }>(
+      `/api/v1/sales/sheets/${sheetId}/respond-negotiation`,
+      { accepted, counter_rate: counterRate, notes }
+    );
+  }
 }

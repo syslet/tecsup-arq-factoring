@@ -38,8 +38,26 @@ import "../../styles/global.css";
       >
         <h1 class="mb-2 text-2xl font-bold text-white">Registrar Planilla de Facturas</h1>
         <p class="mb-6 text-sm text-gray-400">
-          Ingresa las facturas electrónicas que deseas cotizar para adelanto de fondos.
+          Ingresa las facturas electrónicas que deseas cotizar mediante registro manual o carga masiva.
         </p>
+
+        <!-- Mode Navigation Tabs -->
+        <div class="mb-6 flex space-x-3 border-b border-gray-800 pb-3">
+          <button
+            id="tab-manual"
+            type="button"
+            class="rounded-xl bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30"
+          >
+            Ingreso Manual (1 a 1)
+          </button>
+          <button
+            id="tab-batch"
+            type="button"
+            class="rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-slate-700"
+          >
+            Carga Masiva (CSV / JSON)
+          </button>
+        </div>
 
         <div
           id="error-box"
@@ -47,6 +65,7 @@ import "../../styles/global.css";
         >
         </div>
 
+        <!-- Manual Mode Form -->
         <form id="new-sheet-form" class="space-y-6">
           <div class="w-48">
             <label class="mb-1 block text-xs font-semibold text-gray-400 uppercase"
@@ -100,15 +119,154 @@ import "../../styles/global.css";
             </button>
           </div>
         </form>
+
+        <!-- Batch Mode Container (Dropzone) -->
+        <form id="batch-sheet-form" class="hidden space-y-6">
+          <div class="w-48">
+            <label class="mb-1 block text-xs font-semibold text-gray-400 uppercase"
+              >Moneda de la Planilla</label
+            >
+            <select
+              id="batch-currency"
+              class="w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
+            >
+              <option value="PEN">Soles (PEN)</option>
+              <option value="USD">Dólares (USD)</option>
+            </select>
+          </div>
+
+          <!-- Dropzone Area -->
+          <div
+            id="dropzone"
+            class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-700 bg-slate-950/60 p-10 text-center hover:border-emerald-500/50 cursor-pointer transition-all"
+          >
+            <svg class="mb-4 h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p class="text-sm font-semibold text-gray-200">Arrastra tu archivo CSV o JSON aquí</p>
+            <p class="mt-1 text-xs text-gray-400">O haz clic para seleccionar un archivo (Max. 90 comprobantes)</p>
+            <input type="file" id="batch-file-input" accept=".csv, .json" class="hidden" />
+            <div id="file-info" class="mt-4 hidden rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 text-xs text-emerald-400 font-medium"></div>
+          </div>
+
+          <div class="flex items-center justify-end">
+            <button
+              type="submit"
+              id="btn-process-batch"
+              disabled
+              class="rounded-xl bg-emerald-500/50 px-6 py-3 text-sm font-bold text-black cursor-not-allowed transition-all"
+            >
+              Subir y Procesar Planilla Masiva &rarr;
+            </button>
+          </div>
+        </form>
       </div>
     </main>
 
     <script>
       import { SalesAdapter } from "../../adapters/api/salesAdapter";
 
+      const tabManual = document.getElementById("tab-manual");
+      const tabBatch = document.getElementById("tab-batch");
+      const manualForm = document.getElementById("new-sheet-form");
+      const batchForm = document.getElementById("batch-sheet-form");
       const rowsTbody = document.getElementById("invoices-rows");
       const errorBox = document.getElementById("error-box");
+      const dropzone = document.getElementById("dropzone");
+      const batchFileInput = document.getElementById("batch-file-input") as HTMLInputElement;
+      const fileInfo = document.getElementById("file-info");
+      const btnProcessBatch = document.getElementById("btn-process-batch") as HTMLButtonElement;
+
       let invoiceCount = 0;
+      let selectedFile: File | null = null;
+
+      // Tab switching
+      tabManual?.addEventListener("click", () => {
+        tabManual.className = "rounded-xl bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30";
+        tabBatch.className = "rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-slate-700";
+        manualForm?.classList.remove("hidden");
+        batchForm?.classList.add("hidden");
+        errorBox?.classList.add("hidden");
+      });
+
+      tabBatch?.addEventListener("click", () => {
+        tabBatch.className = "rounded-xl bg-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30";
+        tabManual.className = "rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-gray-400 hover:bg-slate-700";
+        batchForm?.classList.remove("hidden");
+        manualForm?.classList.add("hidden");
+        errorBox?.classList.add("hidden");
+      });
+
+      // Dropzone functionality
+      dropzone?.addEventListener("click", () => batchFileInput?.click());
+
+      dropzone?.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("border-emerald-500");
+      });
+
+      dropzone?.addEventListener("dragleave", () => {
+        dropzone.classList.remove("border-emerald-500");
+      });
+
+      dropzone?.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("border-emerald-500");
+        if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+          handleFileSelected(e.dataTransfer.files[0]);
+        }
+      });
+
+      batchFileInput?.addEventListener("change", () => {
+        if (batchFileInput.files && batchFileInput.files[0]) {
+          handleFileSelected(batchFileInput.files[0]);
+        }
+      });
+
+      function handleFileSelected(file: File) {
+        if (!file.name.endsWith(".csv") && !file.name.endsWith(".json")) {
+          if (errorBox) {
+            errorBox.textContent = "Formato no válido. Solo se permiten archivos .csv y .json";
+            errorBox.classList.remove("hidden");
+          }
+          return;
+        }
+        selectedFile = file;
+        if (fileInfo) {
+          fileInfo.textContent = `Archivo seleccionado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          fileInfo.classList.remove("hidden");
+        }
+        if (btnProcessBatch) {
+          btnProcessBatch.disabled = false;
+          btnProcessBatch.className = "rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-all";
+        }
+      }
+
+      // Batch form submit
+      batchForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorBox?.classList.add("hidden");
+
+        if (!selectedFile) {
+          if (errorBox) {
+            errorBox.textContent = "Por favor selecciona un archivo CSV o JSON.";
+            errorBox.classList.remove("hidden");
+          }
+          return;
+        }
+
+        const currency = (document.getElementById("batch-currency") as HTMLSelectElement).value;
+
+        try {
+          const res = await SalesAdapter.uploadBatchSheet(selectedFile, currency);
+          window.location.href = `/sales/${res.sheet.id}/quote`;
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al procesar archivo masivo";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      });
 
       function addRow(defaultVals?: any) {
         invoiceCount++;
