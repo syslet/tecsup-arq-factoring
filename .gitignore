@@ -1,6 +1,8 @@
 # --- Local Brain & LLM Custom Instruction Files ---
 CLAUDE.md
 .localbrain/
+.ag/
+.scratch/
 
 # --- Database ---
 db_data/
@@ -19,6 +21,7 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 .env
+*.log
 
 # --- Node/Web (Frontend) ---
 node_modules/
@@ -27,6 +30,8 @@ build/
 .next/
 out/
 .nuxt/
+.astro/
+.pnpm-store/
 .cache/
 .npm
 .yarn/
@@ -37,6 +42,7 @@ out/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # --- IDEs and OS ---
 .idea/
@@ -48,3 +54,4 @@ yarn-error.log*
 *.swp
 .DS_Store
 Thumbs.db
+

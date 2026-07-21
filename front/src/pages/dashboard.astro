@@ -1,0 +1,14 @@
+---
+import AuthLayout from "../layouts/AuthLayout.astro";
+import { UserNavbar } from "../components/react/UserNavbar";
+import { DashboardView } from "../components/react/DashboardView";
+---
+
+<AuthLayout title="Dashboard">
+  <div className="flex min-h-screen w-full flex-col">
+    <UserNavbar client:load />
+    <div className="flex-1">
+      <DashboardView client:load />
+    </div>
+  </div>
+</AuthLayout>

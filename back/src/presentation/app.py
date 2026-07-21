@@ -1,30 +1,54 @@
-from dotenv import load_dotenv
-from flask import Flask, Response, jsonify
-from flask_cors import CORS
+import sys
+from pathlib import Path
+
+# Ensure root directory is in sys.path
+root_dir = Path(__file__).resolve().parent.parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+
+from dotenv import load_dotenv  # noqa: E402
+from flask import Flask, Response, jsonify  # noqa: E402
+from flask_cors import CORS  # noqa: E402
+
+from src.infrastructure.db.migrator import init_db_and_seed  # noqa: E402
+from src.infrastructure.db.session import init_app_db  # noqa: E402
+from src.presentation.routes.auth_routes import auth_bp  # noqa: E402
 
 
 def create_app() -> Flask:
     """Application factory for the Flask web application."""
     load_dotenv()
 
-    app = Flask(__name__)
+    _app = Flask(__name__)
+
+    # Initialize DB session and DI Container lifecycle hooks
+    init_app_db(_app)
 
     # Configure CORS to allow communication with the frontend
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(_app, resources={r"/api/*": {"origins": "*"}})
 
-    @app.errorhandler(404)
+    # Register Blueprints
+    _app.register_blueprint(auth_bp)
+
+    @_app.errorhandler(404)
     def resource_not_found(_e: Exception) -> tuple[Response, int]:
         return jsonify({"error": "Resource not found"}), 404
 
-    @app.errorhandler(500)
-    def internal_server_error(_e: Exception) -> tuple[Response, int]:
-        return jsonify({"error": "Internal server error"}), 500
+    @_app.errorhandler(500)
+    def internal_server_error(e: Exception) -> tuple[Response, int]:
+        return jsonify({"error": f"Internal server error: {e}"}), 500
 
-    @app.route("/health")
+    @_app.route("/health")
     def health_check() -> tuple[Response, int]:
         return jsonify({"status": "healthy", "service": "backend"}), 200
 
-    return app
+    # Execute DB migrations & default admin seeding on app startup
+    try:
+        init_db_and_seed()
+    except Exception as err:
+        _app.logger.warning(f"DB migration auto-check encountered: {err}")
+
+    return _app
 
 
 if __name__ == "__main__":
