@@ -135,6 +135,9 @@ class InvoiceSheetModel(Base):
     invoices: Mapped[list["InvoiceModel"]] = relationship(
         "InvoiceModel", back_populates="sheet", cascade="all, delete-orphan"
     )
+    negotiations: Mapped[list["NegotiationHistoryModel"]] = relationship(
+        "NegotiationHistoryModel", back_populates="sheet", cascade="all, delete-orphan"
+    )
 
 
 class InvoiceModel(Base):
@@ -191,3 +194,29 @@ class DisbursementModel(Base):
     )
 
     sheet: Mapped["InvoiceSheetModel"] = relationship("InvoiceSheetModel")
+
+
+class NegotiationHistoryModel(Base):
+    """SQLAlchemy model for negotiation_histories table."""
+
+    __tablename__ = "negotiation_histories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    sheet_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("invoice_sheets.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    requested_rate: Mapped[float] = mapped_column(Float, nullable=False)
+    offered_rate: Mapped[float] = mapped_column(Float, nullable=False)
+    requested_by_user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="PENDING")
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    sheet: Mapped["InvoiceSheetModel"] = relationship(
+        "InvoiceSheetModel", back_populates="negotiations"
+    )
+

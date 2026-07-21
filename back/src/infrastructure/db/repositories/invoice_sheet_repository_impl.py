@@ -23,6 +23,8 @@ class SqlAlchemyInvoiceSheetRepository(IInvoiceSheetRepository):
                 sheet_model.interest_fee = sheet.interest_fee
                 sheet_model.commission = sheet.commission
                 sheet_model.net_disbursement = sheet.net_disbursement
+                sheet_model.advance_rate = sheet.advance_rate
+                sheet_model.monthly_rate = sheet.monthly_rate
                 self._db.commit()
                 self._db.refresh(sheet_model)
                 return self._to_entity(sheet_model)
