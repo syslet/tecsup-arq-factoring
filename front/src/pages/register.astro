@@ -238,6 +238,7 @@ import "../styles/global.css";
 
     <script>
       import { apiClient } from "../adapters/api_client";
+      import { tokenStorage } from "../adapters/storage/token-storage";
 
       const step1Content = document.getElementById("step-1-content");
       const step2Content = document.getElementById("step-2-content");
@@ -301,7 +302,7 @@ import "../styles/global.css";
             identifier: payload.email,
             password: payload.password,
           });
-          localStorage.setItem("factoring_access_token", loginRes.access_token);
+          tokenStorage.setToken(loginRes.access_token);
 
           // Upload dummy/file doc if selected
           await apiClient.post("/api/v1/onboarding/documents", {

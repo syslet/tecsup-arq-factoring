@@ -1,5 +1,11 @@
 ---
-import "../../styles/global.css";
+import "../../../styles/global.css";
+
+export function getStaticPaths() {
+  return Array.from({ length: 500 }, (_, i) => ({
+    params: { id: String(i + 1) },
+  }));
+}
 
 const { id } = Astro.params;
 ---
@@ -90,42 +96,7 @@ const { id } = Astro.params;
           </div>
         </div>
 
-        <!-- Negotiation Section -->
-        <div id="negotiation-panel" class="mb-8 hidden rounded-xl border border-amber-500/30 bg-amber-500/5 p-6">
-          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">Solicitar Ajuste / Negociación de Tasa</h3>
-          <p class="text-xs text-gray-400 mb-4">Propón una nueva tasa mensual para evaluar una contraoferta o aprobación por tu ejecutivo.</p>
-          
-          <form id="negotiation-form" class="flex items-end gap-4">
-            <div class="w-48">
-              <label class="block text-xs text-gray-400 mb-1">Tasa Mensual Deseada (%)</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0.5"
-                max="5.0"
-                id="input-requested-rate"
-                required
-                value="1.8"
-                class="w-full rounded-lg border border-gray-700 bg-slate-950 p-2.5 text-xs text-white"
-              />
-            </div>
-            <div class="flex-grow">
-              <label class="block text-xs text-gray-400 mb-1">Justificación / Notas (opcional)</label>
-              <input
-                type="text"
-                id="input-negotiation-notes"
-                placeholder="Ej. Volumen recurrente o tasa preferencial"
-                class="w-full rounded-lg border border-gray-700 bg-slate-950 p-2.5 text-xs text-white"
-              />
-            </div>
-            <button
-              type="submit"
-              class="rounded-lg bg-amber-500 px-5 py-2.5 text-xs font-bold text-black hover:bg-amber-400"
-            >
-              Enviar Propuesta
-            </button>
-          </form>
-        </div>
+
 
         <!-- Invoices List Breakdown -->
         <h2 class="mb-3 text-base font-bold text-white">Detalle de Facturas Evaluadas</h2>
@@ -164,14 +135,8 @@ const { id } = Astro.params;
           </a>
           <div class="flex gap-3">
             <button
-              id="btn-toggle-negotiate"
-              class="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm font-bold text-amber-400 hover:bg-amber-500/20"
-            >
-              Negociar Tasa
-            </button>
-            <button
               id="btn-accept-disburse"
-              class="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400"
+              class="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-all"
             >
               Aceptar Cotización y Solicitar Desembolso &rarr;
             </button>
@@ -180,11 +145,13 @@ const { id } = Astro.params;
       </div>
     </main>
 
-    <script data-sheet-id={id}>
-      import { SalesAdapter } from "../../adapters/api/salesAdapter";
-      import { DisbursementAdapter } from "../../adapters/api/disbursementAdapter";
+    <script>
+      import { SalesAdapter } from "../../../adapters/api/salesAdapter";
+      import { DisbursementAdapter } from "../../../adapters/api/disbursementAdapter";
 
-      const sheetId = parseInt(document.currentScript?.getAttribute("data-sheet-id") || "0", 10);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const salesIdx = pathParts.indexOf("sales");
+      const sheetId = salesIdx !== -1 && pathParts[salesIdx + 1] ? parseInt(pathParts[salesIdx + 1], 10) : 0;
       const errorBox = document.getElementById("error-box");
       const infoBox = document.getElementById("info-box");
       const btnAccept = document.getElementById("btn-accept-disburse");

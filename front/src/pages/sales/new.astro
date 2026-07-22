@@ -165,6 +165,16 @@ import "../../styles/global.css";
 
     <script>
       import { SalesAdapter } from "../../adapters/api/salesAdapter";
+      import { getCurrentUser } from "../../application/use-cases/auth-use-cases";
+
+      // Verify session and verification status
+      getCurrentUser().then((user) => {
+        if (!user) {
+          window.location.href = "/login";
+        } else if (user.verificationStatus === "PENDING_VERIFICATION") {
+          window.location.href = "/verification-pending";
+        }
+      });
 
       const tabManual = document.getElementById("tab-manual");
       const tabBatch = document.getElementById("tab-batch");

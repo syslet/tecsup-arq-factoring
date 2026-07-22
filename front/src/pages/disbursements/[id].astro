@@ -1,6 +1,12 @@
 ---
 import "../../styles/global.css";
 
+export function getStaticPaths() {
+  return Array.from({ length: 500 }, (_, i) => ({
+    params: { id: String(i + 1) },
+  }));
+}
+
 const { id } = Astro.params;
 ---
 
@@ -105,10 +111,12 @@ const { id } = Astro.params;
       </div>
     </main>
 
-    <script data-disb-id={id}>
+    <script>
       import { DisbursementAdapter } from "../../adapters/api/disbursementAdapter";
 
-      const disbId = parseInt(document.currentScript?.getAttribute("data-disb-id") || "0", 10);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const disbIdx = pathParts.indexOf("disbursements");
+      const disbId = disbIdx !== -1 && pathParts[disbIdx + 1] ? parseInt(pathParts[disbIdx + 1], 10) : 0;
       const errorBox = document.getElementById("error-box");
 
       async function loadDisbursement() {

@@ -9,7 +9,7 @@ export class ApiClient {
 
   private getToken(): string | null {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("factoring_access_token");
+      return localStorage.getItem("factoring_auth_token") || localStorage.getItem("factoring_access_token");
     }
     return null;
   }
@@ -24,6 +24,7 @@ export class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
+    const token = this.getToken();
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }

@@ -82,34 +82,86 @@ export const DashboardView: React.FC = () => {
         </div>
       </div>
 
-      {/* Verification Warning Alert for PENDING_VERIFICATION */}
-      {isPending && (
-        <div className="flex flex-col items-start gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-300 md:flex-row md:items-center">
-          <div className="shrink-0 rounded-xl bg-amber-500/20 p-3">
-            <svg
-              className="h-6 w-6 text-amber-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
+      {/* Verification Warning Alert or Quick Actions */}
+      {isPending ? (
+        <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-amber-300 md:flex-row md:items-center">
+          <div className="flex items-center gap-4">
+            <div className="shrink-0 rounded-xl bg-amber-500/20 p-3">
+              <svg
+                className="h-6 w-6 text-amber-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-amber-200">
+                Cuenta en Proceso de Verificación Legal
+              </h4>
+              <p className="text-xs leading-relaxed text-amber-300/90">
+                Tu cuenta se encuentra actualmente en revisión. Completa la simulación de aprobación administrativa para habilitar operaciones.
+              </p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <h4 className="text-base font-bold text-amber-200">
-              Cuenta en Proceso de Verificación Legal
-            </h4>
-            <p className="text-xs leading-relaxed text-amber-300/90">
-              Tu cuenta se encuentra actualmente en revisión por nuestro equipo legal (validación
-              RENIEC y SUNARP). Las operaciones financieras (descuento de facturas y desembolsos)
-              están temporalmente restringidas hasta recibir la aprobación final.
-            </p>
-          </div>
+          <a
+            href="/verification-pending"
+            className="shrink-0 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-black hover:bg-amber-400 transition-all"
+          >
+            Ver Estado de Verificación &rarr;
+          </a>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <a
+            href="/sales/new"
+            className="group flex items-center justify-between rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 transition-all hover:bg-emerald-500/20"
+          >
+            <div className="space-y-1">
+              <span className="inline-flex rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 uppercase">
+                Operaciones
+              </span>
+              <h3 className="text-lg font-bold text-white group-hover:text-emerald-300">
+                Nueva Solicitud de Descuento
+              </h3>
+              <p className="text-xs text-slate-400">
+                Carga planillas de facturas (1 a 90 comprobantes) para cotización inmediata.
+              </p>
+            </div>
+            <div className="rounded-xl bg-emerald-500/20 p-3 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+          </a>
+
+          <a
+            href="/disbursements"
+            className="group flex items-center justify-between rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6 transition-all hover:bg-cyan-500/20"
+          >
+            <div className="space-y-1">
+              <span className="inline-flex rounded-full bg-cyan-500/20 px-2.5 py-0.5 text-[10px] font-bold text-cyan-400 uppercase">
+                Historial
+              </span>
+              <h3 className="text-lg font-bold text-white group-hover:text-cyan-300">
+                Bandeja de Desembolsos
+              </h3>
+              <p className="text-xs text-slate-400">
+                Consulta los desembolsos ejecutados y comprobantes de anotación en cuenta CAVALI.
+              </p>
+            </div>
+            <div className="rounded-xl bg-cyan-500/20 p-3 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-black transition-all">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2h2a2 2 0 002 2" />
+              </svg>
+            </div>
+          </a>
         </div>
       )}
 
