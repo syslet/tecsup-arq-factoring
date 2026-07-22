@@ -28,7 +28,9 @@ def accept_sheet_and_disburse(sheet_id: int) -> tuple[Response, int]:
                         "sheet_id": disbursement.sheet_id,
                         "annotation_code": disbursement.annotation_code,
                         "amount": disbursement.amount,
-                        "currency": disbursement.currency.value,
+                        "currency": disbursement.currency.value
+                        if hasattr(disbursement.currency, "value")
+                        else str(disbursement.currency),
                         "bank_name": disbursement.bank_name,
                         "bank_account_number": disbursement.bank_account_number,
                         "cci": disbursement.cci,
@@ -64,7 +66,9 @@ def get_disbursement_by_id(disbursement_id: int) -> tuple[Response, int]:
                     "sheet_id": disbursement.sheet_id,
                     "annotation_code": disbursement.annotation_code,
                     "amount": disbursement.amount,
-                    "currency": disbursement.currency.value,
+                    "currency": disbursement.currency.value
+                    if hasattr(disbursement.currency, "value")
+                    else str(disbursement.currency),
                     "bank_name": disbursement.bank_name,
                     "bank_account_number": disbursement.bank_account_number,
                     "cci": disbursement.cci,
@@ -99,7 +103,7 @@ def list_disbursements() -> tuple[Response, int]:
             "sheet_id": d.sheet_id,
             "annotation_code": d.annotation_code,
             "amount": d.amount,
-            "currency": d.currency.value,
+            "currency": d.currency.value if hasattr(d.currency, "value") else str(d.currency),
             "bank_name": d.bank_name,
             "bank_account_number": d.bank_account_number,
             "cci": d.cci,
@@ -109,4 +113,3 @@ def list_disbursements() -> tuple[Response, int]:
         for d in disbursements
     ]
     return jsonify({"disbursements": result}), 200
-

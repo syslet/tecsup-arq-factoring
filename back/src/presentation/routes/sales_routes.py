@@ -125,7 +125,7 @@ def get_invoice_sheet(sheet_id: int) -> tuple[Response, int]:
             "debtor_ruc": inv.debtor_ruc,
             "debtor_name": inv.debtor_name,
             "amount": inv.amount,
-            "currency": inv.currency.value,
+            "currency": inv.currency.value if hasattr(inv.currency, "value") else str(inv.currency),
             "issue_date": inv.issue_date.isoformat(),
             "due_date": inv.due_date.isoformat(),
             "days_to_maturity": inv.days_to_maturity,
@@ -143,7 +143,9 @@ def get_invoice_sheet(sheet_id: int) -> tuple[Response, int]:
                     "id": sheet.id,
                     "sheet_code": sheet.sheet_code,
                     "company_id": sheet.company_id,
-                    "currency": sheet.currency.value,
+                    "currency": sheet.currency.value
+                    if hasattr(sheet.currency, "value")
+                    else str(sheet.currency),
                     "total_amount": sheet.total_amount,
                     "advance_amount": sheet.advance_amount,
                     "interest_fee": sheet.interest_fee,
@@ -280,9 +282,10 @@ def serve_uploaded_file(file_type: str, filename: str):
     container = get_container()
     file_path = container.storage_service.get_file_path(filename=filename, subfolder=file_type)
     import os
+
     if not os.path.exists(file_path):
         return jsonify({"error": "Archivo no encontrado"}), 404
-    
+
     directory = os.path.dirname(file_path)
     base_name = os.path.basename(file_path)
     return send_from_directory(directory, base_name)
@@ -382,5 +385,3 @@ def respond_negotiation(sheet_id: int) -> tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Error al responder negociación: {e}"}), 500
-
-
