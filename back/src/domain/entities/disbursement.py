@@ -6,7 +6,7 @@ from src.domain.value_objects.currency import Currency
 
 @dataclass
 class Disbursement:
-    """Domain entity representing a bank disbursement and CAVALI/SUNAT account annotation."""
+    """Domain entity representing a bank disbursement and digital account annotation."""
 
     id: int | None
     sheet_id: int

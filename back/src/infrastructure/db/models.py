@@ -219,4 +219,3 @@ class NegotiationHistoryModel(Base):
     sheet: Mapped["InvoiceSheetModel"] = relationship(
         "InvoiceSheetModel", back_populates="negotiations"
     )
-

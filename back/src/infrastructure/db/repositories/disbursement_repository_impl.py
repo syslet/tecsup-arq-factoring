@@ -38,6 +38,7 @@ class SqlAlchemyDisbursementRepository(IDisbursementRepository):
 
     def find_by_company_id(self, company_id: int) -> list[Disbursement]:
         from src.infrastructure.db.models import InvoiceSheetModel
+
         models = (
             self._db.query(DisbursementModel)
             .join(InvoiceSheetModel, DisbursementModel.sheet_id == InvoiceSheetModel.id)
