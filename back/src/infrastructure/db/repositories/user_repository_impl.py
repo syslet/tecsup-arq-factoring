@@ -112,3 +112,7 @@ class SqlAlchemyUserRepository(IUserRepository):
             .first()
         )
         return self._to_entity(model) if model else None
+
+    def find_all(self) -> list[User]:
+        models = self._db.query(UserModel).all()
+        return [self._to_entity(m) for m in models]

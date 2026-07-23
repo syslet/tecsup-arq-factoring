@@ -57,7 +57,6 @@ def register() -> tuple[Response, int]:
             company=company_data,
         )
         user, company = container.register_user_use_case.execute(command)
-        assert user.id is not None
 
         company_schema = None
         if company and company.id:

@@ -326,16 +326,59 @@ import "../../styles/global.css";
         }
 
         const invoicesPayload: any[] = [];
-        rows.forEach((r) => {
+        let hasValidationError = false;
+
+        rows.forEach((r, idx) => {
+          if (hasValidationError) return;
+          const invNum = (r.querySelector(".inv-num") as HTMLInputElement).value.trim();
+          const invRuc = (r.querySelector(".inv-ruc") as HTMLInputElement).value.trim();
+          const invName = (r.querySelector(".inv-name") as HTMLInputElement).value.trim();
+          const amount = parseFloat((r.querySelector(".inv-amount") as HTMLInputElement).value);
+          const issueDate = (r.querySelector(".inv-issue") as HTMLInputElement).value;
+          const dueDate = (r.querySelector(".inv-due") as HTMLInputElement).value;
+
+          if (!invNum) {
+            errorBox!.textContent = `Fila #${idx + 1}: Ingrese el número de factura.`;
+            errorBox!.classList.remove("hidden");
+            hasValidationError = true;
+            return;
+          }
+          if (!/^\d{11}$/.test(invRuc)) {
+            errorBox!.textContent = `Fila #${idx + 1}: El RUC del Aceptante debe tener 11 dígitos.`;
+            errorBox!.classList.remove("hidden");
+            hasValidationError = true;
+            return;
+          }
+          if (!invName || invName.length < 3) {
+            errorBox!.textContent = `Fila #${idx + 1}: Ingrese la Razón Social del Aceptante.`;
+            errorBox!.classList.remove("hidden");
+            hasValidationError = true;
+            return;
+          }
+          if (isNaN(amount) || amount <= 0) {
+            errorBox!.textContent = `Fila #${idx + 1}: El monto de la factura debe ser mayor a 0.`;
+            errorBox!.classList.remove("hidden");
+            hasValidationError = true;
+            return;
+          }
+          if (new Date(dueDate) < new Date(issueDate)) {
+            errorBox!.textContent = `Fila #${idx + 1}: La fecha de vencimiento debe ser posterior a la fecha de emisión.`;
+            errorBox!.classList.remove("hidden");
+            hasValidationError = true;
+            return;
+          }
+
           invoicesPayload.push({
-            invoice_number: (r.querySelector(".inv-num") as HTMLInputElement).value,
-            debtor_ruc: (r.querySelector(".inv-ruc") as HTMLInputElement).value,
-            debtor_name: (r.querySelector(".inv-name") as HTMLInputElement).value,
-            amount: parseFloat((r.querySelector(".inv-amount") as HTMLInputElement).value),
-            issue_date: (r.querySelector(".inv-issue") as HTMLInputElement).value,
-            due_date: (r.querySelector(".inv-due") as HTMLInputElement).value,
+            invoice_number: invNum,
+            debtor_ruc: invRuc,
+            debtor_name: invName,
+            amount: amount,
+            issue_date: issueDate,
+            due_date: dueDate,
           });
         });
+
+        if (hasValidationError) return;
 
         try {
           const res = await SalesAdapter.createSheet({ currency, invoices: invoicesPayload });

@@ -68,6 +68,34 @@ const { id } = Astro.params;
         >
         </div>
 
+        <!-- 3-Step Process Stepper -->
+        <div class="mb-8 rounded-xl border border-gray-800 bg-slate-950 p-4">
+          <span class="block text-xs font-semibold text-gray-400 uppercase mb-3">Estado del Proceso de Evaluación de Planilla</span>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-black">✓</span>
+              <div>
+                <span class="block text-xs font-bold text-emerald-400">1. Carga & Sustento</span>
+                <span class="text-[10px] text-gray-400">Planilla y archivos recibidos</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-black">✓</span>
+              <div>
+                <span class="block text-xs font-bold text-emerald-400">2. Validación SUNAT</span>
+                <span class="text-[10px] text-gray-400">Comprobantes válidos</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg border border-cyan-500/40 bg-cyan-500/10 p-3">
+              <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-xs font-bold text-black">3</span>
+              <div>
+                <span class="block text-xs font-bold text-cyan-400">3. Cotización emitida</span>
+                <span class="text-[10px] text-gray-400">Evaluada por asesor</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Breakdown Grid -->
         <div class="mb-8 grid grid-cols-4 gap-4">
           <div class="rounded-xl border border-gray-800 bg-slate-950 p-4">

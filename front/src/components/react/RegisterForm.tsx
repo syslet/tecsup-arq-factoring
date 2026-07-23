@@ -27,19 +27,21 @@ export const RegisterForm: React.FC = () => {
 
   const validateStep1 = (): boolean => {
     if (!fullName.trim() || fullName.trim().length < 2) {
-      setError("Ingrese un nombre completo válido.");
+      setError("Ingrese un nombre completo válido (mínimo 2 caracteres).");
       return false;
     }
     if (!/^\d{8}$/.test(dni)) {
-      setError("El DNI debe contener exactamente 8 dígitos numéricos.");
+      setError("El DNI del Representante Legal debe contener exactamente 8 dígitos numéricos.");
       return false;
     }
-    if (!email.trim() || !email.includes("@")) {
-      setError("Ingrese un correo electrónico válido.");
+    const freeDomains = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com", "live.com"];
+    const emailParts = email.trim().toLowerCase().split("@");
+    if (!email.includes("@") || emailParts.length !== 2 || freeDomains.includes(emailParts[1])) {
+      setError("Debe ingresar un correo electrónico corporativo (se rechazan dominios gratuitos como Gmail, Hotmail, Yahoo, etc.).");
       return false;
     }
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-]).{8,}$/.test(password)) {
+      setError("La contraseña debe tener al menos 8 caracteres, al menos una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&._-).");
       return false;
     }
     if (password !== confirmPassword) {
@@ -58,8 +60,8 @@ export const RegisterForm: React.FC = () => {
   };
 
   const validateStep2 = (): boolean => {
-    if (!/^\d{11}$/.test(ruc)) {
-      setError("El RUC debe contener exactamente 11 dígitos numéricos.");
+    if (!/^(10|15|17|20)\d{9}$/.test(ruc)) {
+      setError("El RUC debe tener 11 dígitos numéricos y comenzar con 10, 15, 17 o 20.");
       return false;
     }
     if (!businessName.trim() || businessName.trim().length < 3) {

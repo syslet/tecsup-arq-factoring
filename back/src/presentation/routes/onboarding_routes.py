@@ -67,6 +67,47 @@ def upload_company_document() -> tuple[Response, int]:
     )
 
 
+@onboarding_bp.route("/admin/companies/pending", methods=["GET"])
+def list_pending_companies_admin() -> tuple[Response, int]:
+    """Retrieves list of all companies pending verification for Admin review."""
+    container = get_container()
+    users = container.user_repository.find_all() if hasattr(container.user_repository, "find_all") else []
+    pending_list = []
+    
+    # Query database for users with PENDING_VERIFICATION status
+    for u in users:
+        v_status = u.verification_status.value if hasattr(u.verification_status, "value") else str(u.verification_status)
+        if v_status == "PENDING_VERIFICATION" and u.id:
+            company = container.company_repository.find_by_user_id(u.id)
+            if company and company.id:
+                docs = container.company_document_repository.find_by_company_id(company.id)
+                pending_list.append({
+                    "user_id": u.id,
+                    "company_id": company.id,
+                    "full_name": u.full_name,
+                    "email": u.email,
+                    "dni": u.dni,
+                    "phone": u.phone,
+                    "ruc": company.ruc,
+                    "business_name": company.business_name,
+                    "bank_name": company.bank_name,
+                    "bank_account_number": company.bank_account_number,
+                    "cci": company.cci,
+                    "currency": company.currency.value if hasattr(company.currency, "value") else str(company.currency),
+                    "created_at": u.created_at.isoformat() if u.created_at else None,
+                    "documents": [
+                        {
+                            "id": d.id,
+                            "document_type": d.document_type,
+                            "file_name": d.file_name,
+                        }
+                        for d in docs
+                    ]
+                })
+
+    return jsonify({"pending_companies": pending_list}), 200
+
+
 @onboarding_bp.route("/admin/companies/<int:company_id>/verify", methods=["POST"])
 def verify_company_admin(company_id: int) -> tuple[Response, int]:
     """Mock administrative endpoint to approve or reject company verification (SUNAT/RENIEC)."""
@@ -93,3 +134,4 @@ def verify_company_admin(company_id: int) -> tuple[Response, int]:
         )
     except ValueError as e:
         return jsonify({"error": str(e)}), 404
+

@@ -30,3 +30,8 @@ class IUserRepository(ABC):
     def find_by_identifier(self, identifier: str) -> User | None:
         """Retrieves a user entity by email address or DNI."""
         pass
+
+    @abstractmethod
+    def find_all(self) -> list[User]:
+        """Retrieves all users."""
+        pass

@@ -1,0 +1,154 @@
+---
+import "../../styles/global.css";
+---
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel de Administración - Empresas Pendientes | Factoring B2B</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Outfit", sans-serif;
+        background-color: #0b0b0c;
+      }
+    </style>
+  </head>
+  <body class="flex min-h-screen flex-col text-gray-100">
+    <header class="border-b border-gray-800 bg-[#0c0c0e]/80 px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <a href="/dashboard" class="text-xl font-bold tracking-tight text-emerald-400">
+          Factoring B2B <span class="ml-2 rounded-md bg-purple-500/20 px-2 py-0.5 text-xs text-purple-400">ADMIN</span>
+        </a>
+        <a href="/dashboard" class="text-xs text-gray-400 hover:text-white">&larr; Volver al Dashboard</a>
+      </div>
+    </header>
+
+    <main class="mx-auto w-full max-w-7xl flex-grow p-6">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-white">Bandeja de Verificación de Empresas</h1>
+          <p class="text-xs text-gray-400">Revisión administrativa de expedientes de empresas pendientes de onboarding</p>
+        </div>
+        <button
+          id="btn-refresh"
+          class="rounded-xl border border-gray-800 bg-slate-900 px-4 py-2 text-xs font-semibold text-gray-300 hover:bg-gray-800"
+        >
+          Refrescar Lista
+        </button>
+      </div>
+
+      <div id="pending-container" class="space-y-4">
+        <div class="rounded-xl border border-gray-800 bg-slate-900/60 p-8 text-center text-sm text-gray-500">
+          Cargando empresas pendientes...
+        </div>
+      </div>
+    </main>
+
+    <script>
+      import { apiClient } from "../../adapters/api_client";
+
+      interface PendingCompany {
+        user_id: number;
+        company_id: number;
+        full_name: string;
+        email: string;
+        dni: string;
+        phone: string;
+        ruc: string;
+        business_name: string;
+        bank_name: string;
+        bank_account_number: string;
+        cci: string;
+        currency: string;
+        created_at: string;
+        documents: Array<{ id: number; document_type: string; file_name: string }>;
+      }
+
+      async function loadPendingCompanies() {
+        const container = document.getElementById("pending-container");
+        if (!container) return;
+
+        try {
+          const res = await apiClient.get<{ pending_companies: PendingCompany[] }>("/api/v1/admin/companies/pending");
+          const list = res.pending_companies || [];
+
+          if (list.length === 0) {
+            container.innerHTML = `
+              <div class="rounded-xl border border-gray-800 bg-slate-900/60 p-8 text-center text-sm text-gray-400">
+                🎉 No hay empresas pendientes de verificación en este momento.
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = list.map((item) => `
+            <div class="rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-xl flex flex-col md:flex-row justify-between gap-6">
+              <div class="space-y-2 flex-grow">
+                <div class="flex items-center gap-3">
+                  <span class="text-lg font-bold text-white">${item.business_name}</span>
+                  <span class="font-mono text-xs text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded">RUC: ${item.ruc}</span>
+                  <span class="text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">PENDING_VERIFICATION</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400 pt-2">
+                  <div><strong class="block text-gray-500">Rep. Legal:</strong> ${item.full_name} (DNI: ${item.dni})</div>
+                  <div><strong class="block text-gray-500">Contacto:</strong> ${item.email} / ${item.phone || 'N/A'}</div>
+                  <div><strong class="block text-gray-500">Banco / Cuenta:</strong> ${item.bank_name} - ${item.bank_account_number}</div>
+                  <div><strong class="block text-gray-500">CCI:</strong> ${item.cci} (${item.currency})</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 shrink-0">
+                <button
+                  data-comp-id="${item.company_id}"
+                  data-approve="false"
+                  class="btn-action-reject rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-500/20"
+                >
+                  Rechazar
+                </button>
+                <button
+                  data-comp-id="${item.company_id}"
+                  data-approve="true"
+                  class="btn-action-approve rounded-xl bg-emerald-500 px-5 py-2.5 text-xs font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-all"
+                >
+                  Aprobar Empresa
+                </button>
+              </div>
+            </div>
+          `).join("");
+
+          document.querySelectorAll(".btn-action-approve").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              const compId = (e.currentTarget as HTMLElement).getAttribute("data-comp-id");
+              if (compId) {
+                await apiClient.post(`/api/v1/admin/companies/${compId}/verify`, { approve: true });
+                loadPendingCompanies();
+              }
+            });
+          });
+
+          document.querySelectorAll(".btn-action-reject").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+              const compId = (e.currentTarget as HTMLElement).getAttribute("data-comp-id");
+              if (compId) {
+                await apiClient.post(`/api/v1/admin/companies/${compId}/verify`, { approve: false });
+                loadPendingCompanies();
+              }
+            });
+          });
+        } catch (e) {
+          container.innerHTML = `<div class="p-4 text-red-400 text-xs">Error al cargar la lista de empresas pendientes.</div>`;
+        }
+      }
+
+      document.getElementById("btn-refresh")?.addEventListener("click", loadPendingCompanies);
+      loadPendingCompanies();
+    </script>
+  </body>
+</html>
