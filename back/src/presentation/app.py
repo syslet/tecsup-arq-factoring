@@ -7,15 +7,31 @@ if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
 
 from dotenv import load_dotenv  # noqa: E402
-from flask import Flask, Response, jsonify  # noqa: E402
+from flask import Flask, Response, g, jsonify  # noqa: E402
 from flask_cors import CORS  # noqa: E402
 
 from src.infrastructure.db.migrator import init_db_and_seed  # noqa: E402
-from src.infrastructure.db.session import init_app_db  # noqa: E402
+from src.infrastructure.db.session import SessionLocal  # noqa: E402
+from src.infrastructure.di.container import Container
 from src.presentation.routes.auth_routes import auth_bp  # noqa: E402
 from src.presentation.routes.disbursement_routes import disbursement_bp  # noqa: E402
 from src.presentation.routes.onboarding_routes import onboarding_bp  # noqa: E402
 from src.presentation.routes.sales_routes import sales_bp  # noqa: E402
+
+
+def init_app_db(app: Flask) -> None:
+    """Registers database session and container initialization on Flask lifecycle hooks."""
+
+    @app.before_request
+    def create_request_session_and_container() -> None:
+        g.db = SessionLocal()
+        g.container = Container(g.db)
+
+    @app.teardown_appcontext
+    def close_request_session(_exception: BaseException | None = None) -> None:
+        db = getattr(g, "db", None)
+        if db is not None:
+            db.close()
 
 
 def create_app() -> Flask:

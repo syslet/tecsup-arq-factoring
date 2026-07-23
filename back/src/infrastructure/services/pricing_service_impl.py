@@ -1,24 +1,10 @@
-from dataclasses import dataclass
-
 from src.domain.entities.invoice import Invoice
+from src.domain.services.pricing_service import IPricingService, PricingQuote
 from src.domain.value_objects.currency import Currency
 
 
-@dataclass
-class PricingQuote:
-    total_amount: float
-    advance_amount: float
-    interest_fee: float
-    commission: float
-    net_disbursement: float
-    advance_rate: float
-    monthly_rate: float
-    approved_invoices_count: int
-    rejected_invoices_count: int
-
-
-class PricingEngine:
-    """Pricing calculation engine for factoring advance rate, interest, commissions and net disbursement."""
+class StandardPricingService(IPricingService):
+    """Infrastructure implementation of factoring pricing calculation engine."""
 
     DEFAULT_ADVANCE_RATE = 0.85  # 85% advance rate
     DEFAULT_MONTHLY_RATE = 0.02  # 2% TEM (Tasa Efectiva Mensual)

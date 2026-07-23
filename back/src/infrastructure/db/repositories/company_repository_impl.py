@@ -2,7 +2,9 @@ from sqlalchemy.orm import Session
 
 from src.domain.entities.company import Company
 from src.domain.repositories.company_repository import ICompanyRepository
+from src.domain.value_objects.cci_account import CciAccount
 from src.domain.value_objects.currency import Currency
+from src.domain.value_objects.ruc import Ruc
 from src.infrastructure.db.models import CompanyModel
 
 
@@ -15,27 +17,31 @@ class SqlAlchemyCompanyRepository(ICompanyRepository):
     def _to_entity(self, model: CompanyModel) -> Company:
         return Company(
             id=model.id,
-            ruc=model.ruc,
+            ruc=Ruc(model.ruc),
             business_name=model.business_name,
             legal_representative_user_id=model.legal_representative_user_id,
             bank_name=model.bank_name,
             bank_account_number=model.bank_account_number,
-            cci=model.cci,
+            cci=CciAccount(model.cci),
             currency=Currency(model.currency),
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
 
     def save(self, company: Company) -> Company:
+        ruc_str = company.ruc.value
+        cci_str = company.cci.value
+        curr_str = company.currency.value
+
         if company.id is None:
             model = CompanyModel(
-                ruc=company.ruc,
+                ruc=ruc_str,
                 business_name=company.business_name,
                 legal_representative_user_id=company.legal_representative_user_id,
                 bank_name=company.bank_name,
                 bank_account_number=company.bank_account_number,
-                cci=company.cci,
-                currency=company.currency.value,
+                cci=cci_str,
+                currency=curr_str,
             )
             self._db.add(model)
         else:
@@ -43,17 +49,17 @@ class SqlAlchemyCompanyRepository(ICompanyRepository):
             if not model:
                 model = CompanyModel(
                     id=company.id,
-                    ruc=company.ruc,
+                    ruc=ruc_str,
                     business_name=company.business_name,
                     legal_representative_user_id=company.legal_representative_user_id,
                     bank_name=company.bank_name,
                     bank_account_number=company.bank_account_number,
-                    cci=company.cci,
-                    currency=company.currency.value,
+                    cci=cci_str,
+                    currency=curr_str,
                 )
                 self._db.add(model)
             else:
-                model.ruc = company.ruc
+                model.ruc = ruc_str
                 model.business_name = company.business_name
                 model.legal_representative_user_id = company.legal_representative_user_id
                 model.bank_name = company.bank_name

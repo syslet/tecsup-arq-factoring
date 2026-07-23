@@ -69,7 +69,7 @@ def test_register_user_success() -> None:
 
     assert user.id == 1
     assert user.email == "test@factoring.com"
-    assert user.dni == "12345678"
+    assert str(user.dni) == "12345678"
     assert user.role == UserRole.GIRADOR
     assert user.verification_status == VerificationStatus.APPROVED
     hasher_mock.hash.assert_called_once_with("SecretPassword123!")

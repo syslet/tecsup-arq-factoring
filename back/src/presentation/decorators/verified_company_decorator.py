@@ -18,11 +18,7 @@ def require_verified_company(f: Callable[..., Any]) -> Callable[..., Any]:
         if not current_user:
             return jsonify({"error": "Unauthorized"}), 401
 
-        status_val = (
-            current_user.verification_status.value
-            if hasattr(current_user.verification_status, "value")
-            else str(current_user.verification_status)
-        )
+        status_val = current_user.verification_status.value
 
         if status_val not in (VerificationStatus.APPROVED.value, "VERIFIED", "APPROVED"):
             return (

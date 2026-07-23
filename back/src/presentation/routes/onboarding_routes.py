@@ -67,6 +67,76 @@ def upload_company_document() -> tuple[Response, int]:
     )
 
 
+@onboarding_bp.route("/admin/companies/pending", methods=["GET"])
+def list_pending_companies_admin() -> tuple[Response, int]:
+    """Retrieves list of all companies pending verification for Admin review."""
+    container = get_container()
+    users = container.user_repository.find_all()
+    pending_list = []
+
+    # Query database for users with PENDING_VERIFICATION status
+    for u in users:
+        v_status = u.verification_status.value
+        if v_status == "PENDING_VERIFICATION" and u.id:
+            company = container.company_repository.find_by_user_id(u.id)
+            if company and company.id:
+                docs = container.company_document_repository.find_by_company_id(company.id)
+                pending_list.append(
+                    {
+                        "user_id": u.id,
+                        "company_id": company.id,
+                        "full_name": u.full_name,
+                        "email": u.email,
+                        "dni": str(u.dni),
+                        "phone": u.phone,
+                        "ruc": str(company.ruc),
+                        "business_name": company.business_name,
+                        "bank_name": company.bank_name,
+                        "bank_account_number": company.bank_account_number,
+                        "cci": str(company.cci),
+                        "currency": company.currency.value,
+                        "created_at": u.created_at.isoformat() if u.created_at else None,
+                        "documents": [
+                            {
+                                "id": d.id,
+                                "document_type": d.document_type,
+                                "file_name": d.file_name,
+                            }
+                            for d in docs
+                        ],
+                    }
+                )
+
+    return jsonify({"pending_companies": pending_list}), 200
+
+
+@onboarding_bp.route("/admin/sheets", methods=["GET"])
+def list_all_sheets_admin() -> tuple[Response, int]:
+    """Retrieves every invoice sheet across all companies, for administrative visibility."""
+    container = get_container()
+    sheets = container.invoice_sheet_repository.find_all()
+
+    result = []
+    for sheet in sheets:
+        company = container.company_repository.find_by_id(sheet.company_id)
+        result.append(
+            {
+                "id": sheet.id,
+                "sheet_code": sheet.sheet_code,
+                "company_id": sheet.company_id,
+                "business_name": company.business_name if company else None,
+                "ruc": str(company.ruc) if company else None,
+                "currency": sheet.currency.value,
+                "total_amount": sheet.total_amount,
+                "net_disbursement": sheet.net_disbursement,
+                "status": sheet.status,
+                "created_at": sheet.created_at.isoformat() if sheet.created_at else None,
+            }
+        )
+
+    return jsonify({"sheets": result}), 200
+
+
 @onboarding_bp.route("/admin/companies/<int:company_id>/verify", methods=["POST"])
 def verify_company_admin(company_id: int) -> tuple[Response, int]:
     """Mock administrative endpoint to approve or reject company verification (SUNAT/RENIEC)."""
@@ -76,11 +146,7 @@ def verify_company_admin(company_id: int) -> tuple[Response, int]:
     container = get_container()
     try:
         updated_user = container.verify_company_use_case.execute(company_id, approve=approve)
-        status_val = (
-            updated_user.verification_status.value
-            if hasattr(updated_user.verification_status, "value")
-            else str(updated_user.verification_status)
-        )
+        status_val = updated_user.verification_status.value
         return (
             jsonify(
                 {

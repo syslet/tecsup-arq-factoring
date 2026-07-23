@@ -32,7 +32,14 @@ class SeedAdminUserUseCase:
         """Checks for existing admin user and creates one if missing."""
         existing_admin = self._user_repository.find_by_email(self._admin_email)
         if existing_admin:
-            logger.info("Default admin user already exists: %s", self._admin_email)
+            if (
+                existing_admin.role != UserRole.ADMINISTRADOR
+                or existing_admin.verification_status != VerificationStatus.APPROVED
+            ):
+                existing_admin.role = UserRole.ADMINISTRADOR
+                existing_admin.verification_status = VerificationStatus.APPROVED
+                existing_admin = self._user_repository.save(existing_admin)
+                logger.info("Repaired stale default admin user: %s", self._admin_email)
             return existing_admin
 
         hashed_password = self._password_hasher.hash(self._admin_password)

@@ -75,13 +75,7 @@ import "../styles/global.css";
             id="btn-check-status"
             class="w-full rounded-xl border border-gray-800 bg-slate-800 py-3 text-sm font-semibold text-white hover:bg-gray-700"
           >
-            Actualizar Estado
-          </button>
-          <button
-            id="btn-mock-approve"
-            class="w-full rounded-xl bg-emerald-500 py-3 text-sm font-bold text-black transition-all hover:bg-emerald-400"
-          >
-            Simular Aprobación Administrativa (Mock SUNAT)
+            Actualizar Estado de Verificación
           </button>
         </div>
       </div>
@@ -114,15 +108,6 @@ import "../styles/global.css";
       }
 
       document.getElementById("btn-check-status")?.addEventListener("click", checkStatus);
-
-      document.getElementById("btn-mock-approve")?.addEventListener("click", async () => {
-        if (!companyId) await checkStatus();
-        if (companyId) {
-          await apiClient.post(`/api/v1/admin/companies/${companyId}/verify`, { approve: true });
-          window.location.href = "/dashboard";
-        }
-      });
-
       checkStatus();
     </script>
   </body>

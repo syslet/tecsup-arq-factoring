@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from src.domain.entities.disbursement import Disbursement
 from src.domain.repositories.disbursement_repository import IDisbursementRepository
+from src.domain.value_objects.cci_account import CciAccount
 from src.domain.value_objects.currency import Currency
 from src.infrastructure.db.models import DisbursementModel
 
@@ -20,7 +21,7 @@ class SqlAlchemyDisbursementRepository(IDisbursementRepository):
             currency=disbursement.currency.value,
             bank_name=disbursement.bank_name,
             bank_account_number=disbursement.bank_account_number,
-            cci=disbursement.cci,
+            cci=disbursement.cci.value,
             status=disbursement.status,
         )
         self._db.add(model)
@@ -38,6 +39,7 @@ class SqlAlchemyDisbursementRepository(IDisbursementRepository):
 
     def find_by_company_id(self, company_id: int) -> list[Disbursement]:
         from src.infrastructure.db.models import InvoiceSheetModel
+
         models = (
             self._db.query(DisbursementModel)
             .join(InvoiceSheetModel, DisbursementModel.sheet_id == InvoiceSheetModel.id)
@@ -56,7 +58,7 @@ class SqlAlchemyDisbursementRepository(IDisbursementRepository):
             currency=Currency(model.currency),
             bank_name=model.bank_name,
             bank_account_number=model.bank_account_number,
-            cci=model.cci,
+            cci=CciAccount(model.cci),
             status=model.status,
             executed_at=model.executed_at,
         )

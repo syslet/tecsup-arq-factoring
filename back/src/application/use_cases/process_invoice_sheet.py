@@ -6,9 +6,11 @@ from src.domain.entities.group_economic import GroupEconomicRule
 from src.domain.entities.invoice import Invoice
 from src.domain.entities.invoice_sheet import InvoiceSheet
 from src.domain.repositories.invoice_sheet_repository import IInvoiceSheetRepository
-from src.domain.services.pricing_engine import PricingEngine
+from src.domain.services.pricing_service import IPricingService
 from src.domain.value_objects.currency import Currency
+from src.domain.value_objects.ruc import Ruc
 from src.infrastructure.services.mock_sunat_client import MockSunatClient
+from src.infrastructure.services.pricing_service_impl import StandardPricingService
 
 
 @dataclass
@@ -36,11 +38,11 @@ class ProcessInvoiceSheetUseCase:
         self,
         sheet_repository: IInvoiceSheetRepository,
         sunat_client: MockSunatClient | None = None,
-        pricing_engine: PricingEngine | None = None,
+        pricing_service: IPricingService | None = None,
     ) -> None:
         self._sheet_repository = sheet_repository
         self._sunat_client = sunat_client or MockSunatClient()
-        self._pricing_engine = pricing_engine or PricingEngine()
+        self._pricing_service = pricing_service or StandardPricingService()
 
     def execute(self, command: ProcessSheetCommand) -> InvoiceSheet:
         # Rule 1: 1 to 90 invoices
@@ -91,8 +93,8 @@ class ProcessInvoiceSheetUseCase:
                     id=None,
                     sheet_id=None,
                     invoice_number=inv_input.invoice_number,
-                    drawer_ruc=command.drawer_ruc,
-                    debtor_ruc=inv_input.debtor_ruc,
+                    drawer_ruc=Ruc(command.drawer_ruc),
+                    debtor_ruc=Ruc(inv_input.debtor_ruc),
                     debtor_name=inv_input.debtor_name,
                     amount=inv_input.amount,
                     currency=currency_enum,
@@ -106,7 +108,7 @@ class ProcessInvoiceSheetUseCase:
             )
 
         # Rule 5: Pricing calculation
-        quote = self._pricing_engine.calculate_quote(invoice_entities, currency=currency_enum)
+        quote = self._pricing_service.calculate_quote(invoice_entities, currency=currency_enum)
 
         sheet_code = f"PLN-{today.year}-{str(uuid.uuid4())[:8].upper()}"
         sheet_entity = InvoiceSheet(

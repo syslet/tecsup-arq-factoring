@@ -4,6 +4,7 @@ from src.domain.entities.invoice import Invoice
 from src.domain.entities.invoice_sheet import InvoiceSheet
 from src.domain.repositories.invoice_sheet_repository import IInvoiceSheetRepository
 from src.domain.value_objects.currency import Currency
+from src.domain.value_objects.ruc import Ruc
 from src.infrastructure.db.models import InvoiceModel, InvoiceSheetModel
 
 
@@ -29,10 +30,11 @@ class SqlAlchemyInvoiceSheetRepository(IInvoiceSheetRepository):
                 self._db.refresh(sheet_model)
                 return self._to_entity(sheet_model)
 
+        sheet_curr = sheet.currency.value
         sheet_model = InvoiceSheetModel(
             company_id=sheet.company_id,
             sheet_code=sheet.sheet_code,
-            currency=sheet.currency.value,
+            currency=sheet_curr,
             total_amount=sheet.total_amount,
             advance_amount=sheet.advance_amount,
             interest_fee=sheet.interest_fee,
@@ -46,14 +48,17 @@ class SqlAlchemyInvoiceSheetRepository(IInvoiceSheetRepository):
         self._db.flush()
 
         for inv in sheet.invoices:
+            drawer_str = inv.drawer_ruc.value
+            debtor_str = inv.debtor_ruc.value
+            inv_curr = inv.currency.value
             inv_model = InvoiceModel(
                 sheet_id=sheet_model.id,
                 invoice_number=inv.invoice_number,
-                drawer_ruc=inv.drawer_ruc,
-                debtor_ruc=inv.debtor_ruc,
+                drawer_ruc=drawer_str,
+                debtor_ruc=debtor_str,
                 debtor_name=inv.debtor_name,
                 amount=inv.amount,
-                currency=inv.currency.value,
+                currency=inv_curr,
                 issue_date=inv.issue_date,
                 due_date=inv.due_date,
                 days_to_maturity=inv.days_to_maturity,
@@ -80,14 +85,20 @@ class SqlAlchemyInvoiceSheetRepository(IInvoiceSheetRepository):
         )
         return [self._to_entity(m) for m in models]
 
+    def find_all(self) -> list[InvoiceSheet]:
+        models = (
+            self._db.query(InvoiceSheetModel).order_by(InvoiceSheetModel.created_at.desc()).all()
+        )
+        return [self._to_entity(m) for m in models]
+
     def _to_entity(self, model: InvoiceSheetModel) -> InvoiceSheet:
         invoices = [
             Invoice(
                 id=inv.id,
                 sheet_id=inv.sheet_id,
                 invoice_number=inv.invoice_number,
-                drawer_ruc=inv.drawer_ruc,
-                debtor_ruc=inv.debtor_ruc,
+                drawer_ruc=Ruc(inv.drawer_ruc),
+                debtor_ruc=Ruc(inv.debtor_ruc),
                 debtor_name=inv.debtor_name,
                 amount=inv.amount,
                 currency=Currency(inv.currency),

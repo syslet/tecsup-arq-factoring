@@ -50,7 +50,7 @@ def create_invoice_sheet() -> tuple[Response, int]:
 
         command = ProcessSheetCommand(
             company_id=company.id,
-            drawer_ruc=company.ruc,
+            drawer_ruc=str(company.ruc),
             currency=payload.get("currency", company.currency.value),
             invoices=parsed_items,
         )
@@ -61,8 +61,8 @@ def create_invoice_sheet() -> tuple[Response, int]:
             {
                 "id": inv.id,
                 "invoice_number": inv.invoice_number,
-                "drawer_ruc": inv.drawer_ruc,
-                "debtor_ruc": inv.debtor_ruc,
+                "drawer_ruc": str(inv.drawer_ruc),
+                "debtor_ruc": str(inv.debtor_ruc),
                 "debtor_name": inv.debtor_name,
                 "amount": inv.amount,
                 "currency": inv.currency.value,
@@ -121,8 +121,8 @@ def get_invoice_sheet(sheet_id: int) -> tuple[Response, int]:
         {
             "id": inv.id,
             "invoice_number": inv.invoice_number,
-            "drawer_ruc": inv.drawer_ruc,
-            "debtor_ruc": inv.debtor_ruc,
+            "drawer_ruc": str(inv.drawer_ruc),
+            "debtor_ruc": str(inv.debtor_ruc),
             "debtor_name": inv.debtor_name,
             "amount": inv.amount,
             "currency": inv.currency.value,
@@ -220,7 +220,7 @@ def upload_batch_invoice_sheet() -> tuple[Response, int]:
             file_bytes=file_bytes,
             filename=uploaded_file.filename,
             company_id=company.id,
-            drawer_ruc=company.ruc,
+            drawer_ruc=str(company.ruc),
             currency=currency,
         )
 
@@ -280,9 +280,10 @@ def serve_uploaded_file(file_type: str, filename: str):
     container = get_container()
     file_path = container.storage_service.get_file_path(filename=filename, subfolder=file_type)
     import os
+
     if not os.path.exists(file_path):
         return jsonify({"error": "Archivo no encontrado"}), 404
-    
+
     directory = os.path.dirname(file_path)
     base_name = os.path.basename(file_path)
     return send_from_directory(directory, base_name)
@@ -382,5 +383,3 @@ def respond_negotiation(sheet_id: int) -> tuple[Response, int]:
         return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": f"Error al responder negociación: {e}"}), 500
-
-

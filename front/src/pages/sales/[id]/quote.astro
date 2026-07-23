@@ -1,5 +1,11 @@
 ---
-import "../../styles/global.css";
+import "../../../styles/global.css";
+
+export function getStaticPaths() {
+  return Array.from({ length: 500 }, (_, i) => ({
+    params: { id: String(i + 1) },
+  }));
+}
 
 const { id } = Astro.params;
 ---
@@ -62,6 +68,51 @@ const { id } = Astro.params;
         >
         </div>
 
+        <!-- 3-Step Process Stepper -->
+        <div class="mb-8 rounded-xl border border-gray-800 bg-slate-950 p-4">
+          <span class="mb-3 block text-xs font-semibold text-gray-400 uppercase"
+            >Estado del Proceso de Evaluación de Planilla</span
+          >
+          <div class="grid grid-cols-3 gap-4">
+            <div
+              class="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3"
+            >
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-black"
+                >✓</span
+              >
+              <div>
+                <span class="block text-xs font-bold text-emerald-400">1. Carga & Sustento</span>
+                <span class="text-[10px] text-gray-400">Planilla y archivos recibidos</span>
+              </div>
+            </div>
+            <div
+              class="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3"
+            >
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-black"
+                >✓</span
+              >
+              <div>
+                <span class="block text-xs font-bold text-emerald-400">2. Validación SUNAT</span>
+                <span class="text-[10px] text-gray-400">Comprobantes válidos</span>
+              </div>
+            </div>
+            <div
+              class="flex items-center gap-3 rounded-lg border border-cyan-500/40 bg-cyan-500/10 p-3"
+            >
+              <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cyan-500 text-xs font-bold text-black"
+                >3</span
+              >
+              <div>
+                <span class="block text-xs font-bold text-cyan-400">3. Cotización emitida</span>
+                <span class="text-[10px] text-gray-400">Evaluada por asesor</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Breakdown Grid -->
         <div class="mb-8 grid grid-cols-4 gap-4">
           <div class="rounded-xl border border-gray-800 bg-slate-950 p-4">
@@ -88,43 +139,6 @@ const { id } = Astro.params;
             >
             <span id="net-disbursement" class="text-2xl font-black text-emerald-400">S/ 0.00</span>
           </div>
-        </div>
-
-        <!-- Negotiation Section -->
-        <div id="negotiation-panel" class="mb-8 hidden rounded-xl border border-amber-500/30 bg-amber-500/5 p-6">
-          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">Solicitar Ajuste / Negociación de Tasa</h3>
-          <p class="text-xs text-gray-400 mb-4">Propón una nueva tasa mensual para evaluar una contraoferta o aprobación por tu ejecutivo.</p>
-          
-          <form id="negotiation-form" class="flex items-end gap-4">
-            <div class="w-48">
-              <label class="block text-xs text-gray-400 mb-1">Tasa Mensual Deseada (%)</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0.5"
-                max="5.0"
-                id="input-requested-rate"
-                required
-                value="1.8"
-                class="w-full rounded-lg border border-gray-700 bg-slate-950 p-2.5 text-xs text-white"
-              />
-            </div>
-            <div class="flex-grow">
-              <label class="block text-xs text-gray-400 mb-1">Justificación / Notas (opcional)</label>
-              <input
-                type="text"
-                id="input-negotiation-notes"
-                placeholder="Ej. Volumen recurrente o tasa preferencial"
-                class="w-full rounded-lg border border-gray-700 bg-slate-950 p-2.5 text-xs text-white"
-              />
-            </div>
-            <button
-              type="submit"
-              class="rounded-lg bg-amber-500 px-5 py-2.5 text-xs font-bold text-black hover:bg-amber-400"
-            >
-              Enviar Propuesta
-            </button>
-          </form>
         </div>
 
         <!-- Invoices List Breakdown -->
@@ -164,14 +178,14 @@ const { id } = Astro.params;
           </a>
           <div class="flex gap-3">
             <button
-              id="btn-toggle-negotiate"
-              class="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-sm font-bold text-amber-400 hover:bg-amber-500/20"
+              id="btn-reject-quote"
+              class="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition-all hover:bg-red-500/20"
             >
-              Negociar Tasa
+              Rechazar Cotización
             </button>
             <button
               id="btn-accept-disburse"
-              class="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 hover:bg-emerald-400"
+              class="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-black shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-400"
             >
               Aceptar Cotización y Solicitar Desembolso &rarr;
             </button>
@@ -180,14 +194,18 @@ const { id } = Astro.params;
       </div>
     </main>
 
-    <script data-sheet-id={id}>
-      import { SalesAdapter } from "../../adapters/api/salesAdapter";
-      import { DisbursementAdapter } from "../../adapters/api/disbursementAdapter";
+    <script>
+      import { SalesAdapter } from "../../../adapters/api/salesAdapter";
+      import { DisbursementAdapter } from "../../../adapters/api/disbursementAdapter";
 
-      const sheetId = parseInt(document.currentScript?.getAttribute("data-sheet-id") || "0", 10);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const salesIdx = pathParts.indexOf("sales");
+      const sheetId =
+        salesIdx !== -1 && pathParts[salesIdx + 1] ? parseInt(pathParts[salesIdx + 1], 10) : 0;
       const errorBox = document.getElementById("error-box");
       const infoBox = document.getElementById("info-box");
       const btnAccept = document.getElementById("btn-accept-disburse");
+      const btnReject = document.getElementById("btn-reject-quote");
       const btnToggleNegotiate = document.getElementById("btn-toggle-negotiate");
       const negotiationPanel = document.getElementById("negotiation-panel");
       const negotiationForm = document.getElementById("negotiation-form");
@@ -208,13 +226,17 @@ const { id } = Astro.params;
 
           // Status Badge styling
           if (sheet.status === "QUOTED") {
-            statusBadge.className = "rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400";
+            statusBadge.className =
+              "rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-400";
           } else if (sheet.status === "NEGOTIATION_REQUESTED") {
-            statusBadge.className = "rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400";
+            statusBadge.className =
+              "rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400";
           } else if (sheet.status === "COUNTER_OFFERED") {
-            statusBadge.className = "rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400";
+            statusBadge.className =
+              "rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-400";
           } else if (sheet.status === "APPROVED" || sheet.status === "DISBURSED") {
-            statusBadge.className = "rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400";
+            statusBadge.className =
+              "rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400";
           }
 
           (document.getElementById("total-amount") as HTMLElement).textContent =
@@ -226,13 +248,15 @@ const { id } = Astro.params;
           (document.getElementById("net-disbursement") as HTMLElement).textContent =
             `${sheet.currency} ${sheet.net_disbursement.toFixed(2)}`;
 
-          if (sheet.status === "DISBURSED") {
+          if (sheet.status === "DISBURSED" || sheet.status === "REJECTED") {
             if (btnAccept) {
               (btnAccept as HTMLButtonElement).disabled = true;
-              btnAccept.textContent = "Planilla Ya Desembolsada";
+              btnAccept.textContent =
+                sheet.status === "DISBURSED" ? "Planilla Ya Desembolsada" : "Planilla Rechazada";
               btnAccept.className =
                 "rounded-xl bg-gray-700 px-6 py-3 text-sm font-bold text-gray-400 cursor-not-allowed";
             }
+            if (btnReject) (btnReject as HTMLButtonElement).classList.add("hidden");
             if (btnToggleNegotiate) btnToggleNegotiate.classList.add("hidden");
           }
 
@@ -272,8 +296,11 @@ const { id } = Astro.params;
         errorBox?.classList.add("hidden");
         infoBox?.classList.add("hidden");
 
-        const requestedRateInput = (document.getElementById("input-requested-rate") as HTMLInputElement).value;
-        const notes = (document.getElementById("input-negotiation-notes") as HTMLInputElement).value;
+        const requestedRateInput = (
+          document.getElementById("input-requested-rate") as HTMLInputElement
+        ).value;
+        const notes = (document.getElementById("input-negotiation-notes") as HTMLInputElement)
+          .value;
         const requestedRate = parseFloat(requestedRateInput) / 100.0;
 
         try {
@@ -299,6 +326,25 @@ const { id } = Astro.params;
         } catch (err: any) {
           if (errorBox) {
             errorBox.textContent = err.message || "Error al ejecutar el desembolso";
+            errorBox.classList.remove("hidden");
+          }
+        }
+      });
+
+      btnReject?.addEventListener("click", async () => {
+        if (
+          !confirm(
+            "¿Confirmas que deseas rechazar esta cotización? Esta acción no se puede deshacer."
+          )
+        ) {
+          return;
+        }
+        try {
+          await SalesAdapter.respondNegotiation(sheetId, false);
+          loadQuote();
+        } catch (err: any) {
+          if (errorBox) {
+            errorBox.textContent = err.message || "Error al rechazar la cotización";
             errorBox.classList.remove("hidden");
           }
         }

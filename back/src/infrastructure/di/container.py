@@ -33,6 +33,7 @@ from src.infrastructure.services.local_storage_service import LocalStorageServic
 from src.infrastructure.services.mock_identity_verification_service import (
     MockIdentityVerificationService,
 )
+from src.infrastructure.services.pricing_service_impl import StandardPricingService
 
 
 class Container:
@@ -49,8 +50,9 @@ class Container:
         self.negotiation_repository = SqlAlchemyNegotiationRepository(db_session)
         self.password_hasher = BcryptPasswordHasher()
         self.token_service = PyJwtTokenService()
-        self.verification_service = MockIdentityVerificationService(self.user_repository)
+        self.verification_service = MockIdentityVerificationService()
         self.storage_service = LocalStorageService()
+        self.pricing_service = StandardPricingService()
 
     @property
     def negotiate_quote_use_case(self) -> NegotiateQuoteUseCase:
@@ -91,6 +93,7 @@ class Container:
     def process_invoice_sheet_use_case(self) -> ProcessInvoiceSheetUseCase:
         return ProcessInvoiceSheetUseCase(
             sheet_repository=self.invoice_sheet_repository,
+            pricing_service=self.pricing_service,
         )
 
     @property
