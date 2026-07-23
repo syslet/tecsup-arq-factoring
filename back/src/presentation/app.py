@@ -10,14 +10,13 @@ from dotenv import load_dotenv  # noqa: E402
 from flask import Flask, Response, g, jsonify  # noqa: E402
 from flask_cors import CORS  # noqa: E402
 
-from src.infrastructure.db.session import SessionLocal  # noqa: E402
-
 from src.infrastructure.db.migrator import init_db_and_seed  # noqa: E402
+from src.infrastructure.db.session import SessionLocal  # noqa: E402
+from src.infrastructure.di.container import Container
 from src.presentation.routes.auth_routes import auth_bp  # noqa: E402
 from src.presentation.routes.disbursement_routes import disbursement_bp  # noqa: E402
 from src.presentation.routes.onboarding_routes import onboarding_bp  # noqa: E402
 from src.presentation.routes.sales_routes import sales_bp  # noqa: E402
-from src.infrastructure.di.container import Container
 
 
 def init_app_db(app: Flask) -> None:

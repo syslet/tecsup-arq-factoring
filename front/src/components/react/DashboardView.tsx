@@ -106,13 +106,14 @@ export const DashboardView: React.FC = () => {
                 Cuenta en Proceso de Verificación Legal
               </h4>
               <p className="text-xs leading-relaxed text-amber-300/90">
-                Tu cuenta se encuentra actualmente en revisión. Completa la simulación de aprobación administrativa para habilitar operaciones.
+                Tu cuenta se encuentra actualmente en revisión. Completa la simulación de aprobación
+                administrativa para habilitar operaciones.
               </p>
             </div>
           </div>
           <a
             href="/verification-pending"
-            className="shrink-0 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-black hover:bg-amber-400 transition-all"
+            className="shrink-0 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-black transition-all hover:bg-amber-400"
           >
             Ver Estado de Verificación &rarr;
           </a>
@@ -134,9 +135,14 @@ export const DashboardView: React.FC = () => {
                 Carga planillas de facturas (1 a 90 comprobantes) para cotización inmediata.
               </p>
             </div>
-            <div className="rounded-xl bg-emerald-500/20 p-3 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+            <div className="rounded-xl bg-emerald-500/20 p-3 text-emerald-400 transition-all group-hover:bg-emerald-500 group-hover:text-black">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
             </div>
           </a>
@@ -156,9 +162,14 @@ export const DashboardView: React.FC = () => {
                 Consulta los desembolsos ejecutados y comprobantes de anotación en cuenta CAVALI.
               </p>
             </div>
-            <div className="rounded-xl bg-cyan-500/20 p-3 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-black transition-all">
+            <div className="rounded-xl bg-cyan-500/20 p-3 text-cyan-400 transition-all group-hover:bg-cyan-500 group-hover:text-black">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2h2a2 2 0 002 2" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002-2h2a2 2 0 002 2"
+                />
               </svg>
             </div>
           </a>

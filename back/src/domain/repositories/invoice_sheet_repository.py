@@ -20,3 +20,8 @@ class IInvoiceSheetRepository(ABC):
     def find_by_company_id(self, company_id: int) -> list[InvoiceSheet]:
         """Finds all invoice sheets belonging to a specific company."""
         pass
+
+    @abstractmethod
+    def find_all(self) -> list[InvoiceSheet]:
+        """Finds all invoice sheets across all companies, for administrative review."""
+        pass

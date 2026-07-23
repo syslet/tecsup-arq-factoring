@@ -94,7 +94,7 @@ class RegisterUserUseCase:
             email=clean_email,
             password_hash=hashed_password,
             full_name=clean_full_name,
-            dni=dni_vo.value,
+            dni=dni_vo,
             phone=command.phone.strip() if command.phone else None,
             role=command.role,
             verification_status=VerificationStatus.PENDING_VERIFICATION,
@@ -109,23 +109,28 @@ class RegisterUserUseCase:
             currency_enum = Currency(command.company.currency)
             company_entity = Company(
                 id=None,
-                ruc=company_vo_ruc.value,
+                ruc=company_vo_ruc,
                 business_name=command.company.business_name.strip(),
                 legal_representative_user_id=saved_user.id,
                 bank_name=command.company.bank_name.strip(),
                 bank_account_number=command.company.bank_account_number.strip(),
-                cci=company_vo_cci.value,
+                cci=company_vo_cci,
                 currency=currency_enum,
             )
             saved_company = self._company_repository.save(company_entity)
 
-        # Execute mock verification
+        # Execute mock legal verification (RENIEC/SUNAT). A successful check does NOT
+        # auto-approve: it leaves the user PENDING_VERIFICATION for manual admin review.
+        # Only a verification failure short-circuits straight to REJECTED.
         if self._verification_service and company_vo_ruc:
-            updated_status = self._verification_service.verify_legal_representative_and_company(
-                user_id=saved_user.id,
-                dni=saved_user.dni,
-                ruc=company_vo_ruc.value,
-            )
-            saved_user.verification_status = updated_status
+            try:
+                self._verification_service.verify_legal_representative_and_company(
+                    user_id=saved_user.id,
+                    dni=saved_user.dni,
+                    ruc=company_vo_ruc.value,
+                )
+            except Exception:
+                saved_user.verification_status = VerificationStatus.REJECTED
+                saved_user = self._user_repository.save(saved_user)
 
         return saved_user, saved_company

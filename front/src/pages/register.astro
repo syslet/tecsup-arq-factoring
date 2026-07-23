@@ -76,6 +76,7 @@ import "../styles/global.css";
                 class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                 placeholder="Juan Pérez"
               />
+              <p id="err-full_name" class="mt-1 hidden text-xs text-red-400"></p>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -89,6 +90,7 @@ import "../styles/global.css";
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="juan@empresa.com"
                 />
+                <p id="err-email" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-400 uppercase">Contraseña</label
@@ -100,6 +102,7 @@ import "../styles/global.css";
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="Password123!"
                 />
+                <p id="err-password" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -115,15 +118,18 @@ import "../styles/global.css";
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="12345678"
                 />
+                <p id="err-dni" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-400 uppercase">Teléfono</label>
                 <input
                   type="text"
                   id="phone"
+                  maxlength="9"
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="999888777"
                 />
+                <p id="err-phone" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
             </div>
             <button
@@ -153,6 +159,7 @@ import "../styles/global.css";
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="20123456789"
                 />
+                <p id="err-ruc" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-400 uppercase"
@@ -165,6 +172,7 @@ import "../styles/global.css";
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="Empresa S.A.C."
                 />
+                <p id="err-business_name" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
             </div>
             <div class="grid grid-cols-3 gap-3">
@@ -202,6 +210,7 @@ import "../styles/global.css";
                   class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-3 text-sm text-white focus:border-emerald-500 focus:outline-none"
                   placeholder="00219300123456780123"
                 />
+                <p id="err-cci" class="mt-1 hidden text-xs text-red-400"></p>
               </div>
             </div>
             <div>
@@ -211,8 +220,11 @@ import "../styles/global.css";
               <input
                 type="file"
                 id="document_file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                required
                 class="mt-1 w-full rounded-xl border border-gray-800 bg-slate-950 p-2 text-xs text-gray-400"
               />
+              <p id="err-document_file" class="mt-1 hidden text-xs text-red-400"></p>
             </div>
 
             <div class="flex gap-3 pt-2">
@@ -246,15 +258,119 @@ import "../styles/global.css";
       const step2Badge = document.getElementById("step2-badge");
       const errorBox = document.getElementById("error-box");
 
-      document.getElementById("btn-next-step")?.addEventListener("click", () => {
-        const fullName = (document.getElementById("full_name") as HTMLInputElement).value;
-        const email = (document.getElementById("email") as HTMLInputElement).value;
-        const password = (document.getElementById("password") as HTMLInputElement).value;
-        const dni = (document.getElementById("dni") as HTMLInputElement).value;
+      function field(id: string): HTMLInputElement {
+        return document.getElementById(id) as HTMLInputElement;
+      }
 
-        if (!fullName || !email || !password || !dni) {
+      function showError(id: string, message: string | null): void {
+        const el = document.getElementById(`err-${id}`);
+        if (!el) return;
+        if (message) {
+          el.textContent = message;
+          el.classList.remove("hidden");
+        } else {
+          el.classList.add("hidden");
+        }
+      }
+
+      const FREE_EMAIL_DOMAINS = [
+        "gmail.com",
+        "hotmail.com",
+        "yahoo.com",
+        "outlook.com",
+        "live.com",
+      ];
+
+      const validators: Record<string, () => string | null> = {
+        full_name: () =>
+          field("full_name").value.trim().length < 2 ? "Ingrese un nombre completo válido." : null,
+        email: () => {
+          const value = field("email").value.trim().toLowerCase();
+          const parts = value.split("@");
+          if (!value.includes("@") || parts.length !== 2)
+            return "Ingrese un correo electrónico válido.";
+          if (FREE_EMAIL_DOMAINS.includes(parts[1]))
+            return "Use un correo corporativo (no Gmail, Hotmail, Yahoo, etc.).";
+          return null;
+        },
+        password: () => {
+          const value = field("password").value;
+          if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-]).{8,}$/.test(value)) {
+            return "Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial (@$!%*?&._-).";
+          }
+          return null;
+        },
+        dni: () =>
+          !/^\d{8}$/.test(field("dni").value) ? "El DNI debe tener exactamente 8 dígitos." : null,
+        phone: () => {
+          const value = field("phone").value.trim();
+          if (!value) return null;
+          return !/^9\d{8}$/.test(value)
+            ? "El celular debe tener 9 dígitos y empezar con 9."
+            : null;
+        },
+        ruc: () =>
+          !/^(10|15|17|20)\d{9}$/.test(field("ruc").value)
+            ? "El RUC debe tener 11 dígitos y empezar con 10, 15, 17 o 20."
+            : null,
+        business_name: () =>
+          field("business_name").value.trim().length < 3
+            ? "La Razón Social debe tener al menos 3 caracteres."
+            : null,
+        cci: () =>
+          !/^\d{20}$/.test(field("cci").value) ? "El CCI debe tener exactamente 20 dígitos." : null,
+        document_file: () => {
+          const files = field("document_file").files;
+          return !files || files.length === 0 ? "Adjunte la Ficha RUC o Vigencia de Poder." : null;
+        },
+      };
+
+      function validateField(id: string): boolean {
+        const message = validators[id]();
+        showError(id, message);
+        return message === null;
+      }
+
+      for (const id of Object.keys(validators)) {
+        const input = field(id);
+        input?.addEventListener(id === "document_file" ? "change" : "input", () =>
+          validateField(id)
+        );
+        input?.addEventListener("blur", () => validateField(id));
+      }
+
+      document.getElementById("dni")?.addEventListener("input", (e) => {
+        (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.replace(
+          /\D/g,
+          ""
+        );
+      });
+      document.getElementById("ruc")?.addEventListener("input", (e) => {
+        (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.replace(
+          /\D/g,
+          ""
+        );
+      });
+      document.getElementById("cci")?.addEventListener("input", (e) => {
+        (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.replace(
+          /\D/g,
+          ""
+        );
+      });
+      document.getElementById("phone")?.addEventListener("input", (e) => {
+        (e.target as HTMLInputElement).value = (e.target as HTMLInputElement).value.replace(
+          /\D/g,
+          ""
+        );
+      });
+
+      document.getElementById("btn-next-step")?.addEventListener("click", () => {
+        const step1Fields = ["full_name", "email", "password", "dni", "phone"];
+        const allValid = step1Fields.map(validateField).every(Boolean);
+
+        if (!allValid) {
           if (errorBox) {
-            errorBox.textContent = "Por favor complete todos los campos obligatorios del Paso 1.";
+            errorBox.textContent = "Corrija los campos marcados en rojo antes de continuar.";
             errorBox.classList.remove("hidden");
           }
           return;
@@ -273,29 +389,35 @@ import "../styles/global.css";
 
       document.getElementById("register-wizard-form")?.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        const step2Fields = ["ruc", "business_name", "cci", "document_file"];
+        const allValid = step2Fields.map(validateField).every(Boolean);
+        if (!allValid) {
+          if (errorBox) {
+            errorBox.textContent = "Corrija los campos marcados en rojo antes de continuar.";
+            errorBox.classList.remove("hidden");
+          }
+          return;
+        }
+
         try {
           const payload = {
-            email: (document.getElementById("email") as HTMLInputElement).value,
-            password: (document.getElementById("password") as HTMLInputElement).value,
-            full_name: (document.getElementById("full_name") as HTMLInputElement).value,
-            dni: (document.getElementById("dni") as HTMLInputElement).value,
-            phone: (document.getElementById("phone") as HTMLInputElement).value,
+            email: field("email").value.trim(),
+            password: field("password").value,
+            full_name: field("full_name").value.trim(),
+            dni: field("dni").value,
+            phone: field("phone").value.trim() || null,
             company: {
-              ruc: (document.getElementById("ruc") as HTMLInputElement).value,
-              business_name: (document.getElementById("business_name") as HTMLInputElement).value,
-              bank_name: (document.getElementById("bank_name") as HTMLInputElement).value,
-              bank_account_number: (
-                document.getElementById("bank_account_number") as HTMLInputElement
-              ).value,
-              cci: (document.getElementById("cci") as HTMLInputElement).value,
+              ruc: field("ruc").value,
+              business_name: field("business_name").value.trim(),
+              bank_name: field("bank_name").value.trim(),
+              bank_account_number: field("bank_account_number").value.trim(),
+              cci: field("cci").value,
               currency: "PEN",
             },
           };
 
-          const regRes = await apiClient.post<{ message: string; user: any }>(
-            "/api/auth/register",
-            payload
-          );
+          await apiClient.post<{ message: string; user: any }>("/api/auth/register", payload);
 
           // Auto-login to obtain JWT token
           const loginRes = await apiClient.post<{ access_token: string }>("/api/auth/login", {
@@ -304,11 +426,14 @@ import "../styles/global.css";
           });
           tokenStorage.setToken(loginRes.access_token);
 
-          // Upload dummy/file doc if selected
-          await apiClient.post("/api/v1/onboarding/documents", {
-            document_type: "RUC_FICHA",
-            file_name: "ficha_ruc_adjunta.pdf",
-          });
+          // Upload the actual selected document file
+          const selectedFile = field("document_file").files?.[0];
+          if (selectedFile) {
+            const formData = new FormData();
+            formData.append("document_type", "RUC_FICHA");
+            formData.append("file", selectedFile);
+            await apiClient.postForm("/api/v1/onboarding/documents", formData);
+          }
 
           window.location.href = "/verification-pending";
         } catch (err: any) {

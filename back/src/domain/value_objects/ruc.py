@@ -13,7 +13,8 @@ class Ruc:
     VALID_PREFIXES = ("10", "15", "17", "20")
 
     def __post_init__(self) -> None:
-        cleaned = self.value.strip() if self.value else ""
+        raw = str(self.value) if self.value is not None else ""
+        cleaned = raw.strip()
         if not re.match(r"^\d{11}$", cleaned) or not cleaned.startswith(self.VALID_PREFIXES):
             raise InvalidRucException(cleaned)
         object.__setattr__(self, "value", cleaned)

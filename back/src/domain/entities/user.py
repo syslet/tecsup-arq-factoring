@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from src.domain.value_objects.dni import Dni
 from src.domain.value_objects.user_role import UserRole
 from src.domain.value_objects.verification_status import VerificationStatus
 
@@ -14,7 +15,7 @@ class User:
     password_hash: str
     full_name: str
     role: UserRole
-    dni: str
+    dni: Dni
     phone: str | None = None
     verification_status: VerificationStatus = VerificationStatus.PENDING_VERIFICATION
     is_active: bool = True
@@ -24,6 +25,16 @@ class User:
     last_login_at: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    def __post_init__(self) -> None:
+        if isinstance(self.dni, str):
+            object.__setattr__(self, "dni", Dni(self.dni))
+        if isinstance(self.role, str):
+            object.__setattr__(self, "role", UserRole(self.role))
+        if isinstance(self.verification_status, str):
+            object.__setattr__(
+                self, "verification_status", VerificationStatus(self.verification_status)
+            )
 
     def increment_failed_attempts(self, max_allowed: int = 5) -> None:
         """Increments failed login counter and locks account if threshold reached."""

@@ -28,12 +28,10 @@ def accept_sheet_and_disburse(sheet_id: int) -> tuple[Response, int]:
                         "sheet_id": disbursement.sheet_id,
                         "annotation_code": disbursement.annotation_code,
                         "amount": disbursement.amount,
-                        "currency": disbursement.currency.value
-                        if hasattr(disbursement.currency, "value")
-                        else str(disbursement.currency),
+                        "currency": disbursement.currency.value,
                         "bank_name": disbursement.bank_name,
                         "bank_account_number": disbursement.bank_account_number,
-                        "cci": disbursement.cci,
+                        "cci": str(disbursement.cci),
                         "status": disbursement.status,
                         "executed_at": disbursement.executed_at.isoformat()
                         if disbursement.executed_at
@@ -66,12 +64,10 @@ def get_disbursement_by_id(disbursement_id: int) -> tuple[Response, int]:
                     "sheet_id": disbursement.sheet_id,
                     "annotation_code": disbursement.annotation_code,
                     "amount": disbursement.amount,
-                    "currency": disbursement.currency.value
-                    if hasattr(disbursement.currency, "value")
-                    else str(disbursement.currency),
+                    "currency": disbursement.currency.value,
                     "bank_name": disbursement.bank_name,
                     "bank_account_number": disbursement.bank_account_number,
-                    "cci": disbursement.cci,
+                    "cci": str(disbursement.cci),
                     "status": disbursement.status,
                     "executed_at": disbursement.executed_at.isoformat()
                     if disbursement.executed_at
@@ -103,10 +99,10 @@ def list_disbursements() -> tuple[Response, int]:
             "sheet_id": d.sheet_id,
             "annotation_code": d.annotation_code,
             "amount": d.amount,
-            "currency": d.currency.value if hasattr(d.currency, "value") else str(d.currency),
+            "currency": d.currency.value,
             "bank_name": d.bank_name,
             "bank_account_number": d.bank_account_number,
-            "cci": d.cci,
+            "cci": str(d.cci),
             "status": d.status,
             "executed_at": d.executed_at.isoformat() if d.executed_at else None,
         }

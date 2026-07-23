@@ -11,7 +11,8 @@ class CciAccount:
     value: str
 
     def __post_init__(self) -> None:
-        cleaned = self.value.strip() if self.value else ""
+        raw = str(self.value) if self.value is not None else ""
+        cleaned = raw.strip()
         if not re.match(r"^\d{20}$", cleaned):
             raise InvalidCciException(cleaned)
         object.__setattr__(self, "value", cleaned)

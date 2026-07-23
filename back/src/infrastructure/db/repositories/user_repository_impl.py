@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.domain.entities.user import User
 from src.domain.repositories.user_repository import IUserRepository
+from src.domain.value_objects.dni import Dni
 from src.domain.value_objects.user_role import UserRole
 from src.domain.value_objects.verification_status import VerificationStatus
 from src.infrastructure.db.models import UserModel
@@ -20,7 +21,7 @@ class SqlAlchemyUserRepository(IUserRepository):
             email=model.email,
             password_hash=model.password_hash,
             full_name=model.full_name,
-            dni=model.dni,
+            dni=Dni(model.dni),
             phone=model.phone,
             role=UserRole(model.role),
             verification_status=VerificationStatus(model.verification_status),
@@ -34,15 +35,18 @@ class SqlAlchemyUserRepository(IUserRepository):
         )
 
     def save(self, user: User) -> User:
+        dni_str = user.dni.value
+        role_str = user.role.value
+        status_str = user.verification_status.value
         if user.id is None:
             model = UserModel(
                 email=user.email,
                 password_hash=user.password_hash,
                 full_name=user.full_name,
-                dni=user.dni,
+                dni=dni_str,
                 phone=user.phone,
-                role=user.role.value,
-                verification_status=user.verification_status.value,
+                role=role_str,
+                verification_status=status_str,
                 is_active=user.is_active,
                 failed_login_attempts=user.failed_login_attempts,
                 is_locked=user.is_locked,
@@ -58,10 +62,10 @@ class SqlAlchemyUserRepository(IUserRepository):
                     email=user.email,
                     password_hash=user.password_hash,
                     full_name=user.full_name,
-                    dni=user.dni,
+                    dni=dni_str,
                     phone=user.phone,
-                    role=user.role.value,
-                    verification_status=user.verification_status.value,
+                    role=role_str,
+                    verification_status=status_str,
                     is_active=user.is_active,
                     failed_login_attempts=user.failed_login_attempts,
                     is_locked=user.is_locked,
@@ -73,7 +77,7 @@ class SqlAlchemyUserRepository(IUserRepository):
                 model.email = user.email
                 model.password_hash = user.password_hash
                 model.full_name = user.full_name
-                model.dni = user.dni
+                model.dni = dni_str
                 model.phone = user.phone
                 model.role = user.role.value
                 model.verification_status = user.verification_status.value

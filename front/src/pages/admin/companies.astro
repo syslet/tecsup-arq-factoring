@@ -23,10 +23,19 @@ import "../../styles/global.css";
   <body class="flex min-h-screen flex-col text-gray-100">
     <header class="border-b border-gray-800 bg-[#0c0c0e]/80 px-6 py-4">
       <div class="mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/dashboard" class="text-xl font-bold tracking-tight text-emerald-400">
-          Factoring B2B <span class="ml-2 rounded-md bg-purple-500/20 px-2 py-0.5 text-xs text-purple-400">ADMIN</span>
-        </a>
-        <a href="/dashboard" class="text-xs text-gray-400 hover:text-white">&larr; Volver al Dashboard</a>
+        <span class="text-xl font-bold tracking-tight text-emerald-400">
+          Factoring B2B <span
+            class="ml-2 rounded-md bg-purple-500/20 px-2 py-0.5 text-xs text-purple-400">ADMIN</span
+          >
+        </span>
+        <div class="flex items-center gap-4">
+          <a href="/admin/sheets" class="text-xs text-gray-400 hover:text-white"
+            >Todas las Planillas</a
+          >
+          <button id="btn-logout" class="text-xs text-gray-400 hover:text-white"
+            >Cerrar Sesión</button
+          >
+        </div>
       </div>
     </header>
 
@@ -34,7 +43,9 @@ import "../../styles/global.css";
       <div class="mb-6 flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-white">Bandeja de Verificación de Empresas</h1>
-          <p class="text-xs text-gray-400">Revisión administrativa de expedientes de empresas pendientes de onboarding</p>
+          <p class="text-xs text-gray-400">
+            Revisión administrativa de expedientes de empresas pendientes de onboarding
+          </p>
         </div>
         <button
           id="btn-refresh"
@@ -45,7 +56,9 @@ import "../../styles/global.css";
       </div>
 
       <div id="pending-container" class="space-y-4">
-        <div class="rounded-xl border border-gray-800 bg-slate-900/60 p-8 text-center text-sm text-gray-500">
+        <div
+          class="rounded-xl border border-gray-800 bg-slate-900/60 p-8 text-center text-sm text-gray-500"
+        >
           Cargando empresas pendientes...
         </div>
       </div>
@@ -76,7 +89,9 @@ import "../../styles/global.css";
         if (!container) return;
 
         try {
-          const res = await apiClient.get<{ pending_companies: PendingCompany[] }>("/api/v1/admin/companies/pending");
+          const res = await apiClient.get<{ pending_companies: PendingCompany[] }>(
+            "/api/v1/admin/companies/pending"
+          );
           const list = res.pending_companies || [];
 
           if (list.length === 0) {
@@ -88,7 +103,9 @@ import "../../styles/global.css";
             return;
           }
 
-          container.innerHTML = list.map((item) => `
+          container.innerHTML = list
+            .map(
+              (item) => `
             <div class="rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-xl flex flex-col md:flex-row justify-between gap-6">
               <div class="space-y-2 flex-grow">
                 <div class="flex items-center gap-3">
@@ -98,7 +115,7 @@ import "../../styles/global.css";
                 </div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-400 pt-2">
                   <div><strong class="block text-gray-500">Rep. Legal:</strong> ${item.full_name} (DNI: ${item.dni})</div>
-                  <div><strong class="block text-gray-500">Contacto:</strong> ${item.email} / ${item.phone || 'N/A'}</div>
+                  <div><strong class="block text-gray-500">Contacto:</strong> ${item.email} / ${item.phone || "N/A"}</div>
                   <div><strong class="block text-gray-500">Banco / Cuenta:</strong> ${item.bank_name} - ${item.bank_account_number}</div>
                   <div><strong class="block text-gray-500">CCI:</strong> ${item.cci} (${item.currency})</div>
                 </div>
@@ -121,7 +138,9 @@ import "../../styles/global.css";
                 </button>
               </div>
             </div>
-          `).join("");
+          `
+            )
+            .join("");
 
           document.querySelectorAll(".btn-action-approve").forEach((btn) => {
             btn.addEventListener("click", async (e) => {
@@ -137,7 +156,9 @@ import "../../styles/global.css";
             btn.addEventListener("click", async (e) => {
               const compId = (e.currentTarget as HTMLElement).getAttribute("data-comp-id");
               if (compId) {
-                await apiClient.post(`/api/v1/admin/companies/${compId}/verify`, { approve: false });
+                await apiClient.post(`/api/v1/admin/companies/${compId}/verify`, {
+                  approve: false,
+                });
                 loadPendingCompanies();
               }
             });
@@ -148,6 +169,10 @@ import "../../styles/global.css";
       }
 
       document.getElementById("btn-refresh")?.addEventListener("click", loadPendingCompanies);
+      document.getElementById("btn-logout")?.addEventListener("click", () => {
+        localStorage.removeItem("factoring_access_token");
+        window.location.href = "/login";
+      });
       loadPendingCompanies();
     </script>
   </body>

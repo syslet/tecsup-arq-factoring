@@ -62,7 +62,7 @@ def register() -> tuple[Response, int]:
         if company and company.id:
             company_schema = CompanyResponseSchema(
                 id=company.id,
-                ruc=company.ruc,
+                ruc=str(company.ruc),
                 business_name=company.business_name,
                 bank_name=company.bank_name,
                 currency=company.currency.value,
@@ -72,7 +72,7 @@ def register() -> tuple[Response, int]:
             id=user.id,
             email=user.email,
             full_name=user.full_name,
-            dni=user.dni,
+            dni=str(user.dni),
             phone=user.phone,
             role=user.role.value,
             verification_status=user.verification_status.value,
@@ -120,14 +120,13 @@ def login() -> tuple[Response, int]:
             user_agent=user_agent,
         )
         user, access_token, session = container.login_user_use_case.execute(command)
-        assert user.id is not None
 
         company = container.company_repository.find_by_user_id(user.id)
         company_schema = None
         if company and company.id:
             company_schema = CompanyResponseSchema(
                 id=company.id,
-                ruc=company.ruc,
+                ruc=str(company.ruc),
                 business_name=company.business_name,
                 bank_name=company.bank_name,
                 currency=company.currency.value,
@@ -137,7 +136,7 @@ def login() -> tuple[Response, int]:
             id=user.id,
             email=user.email,
             full_name=user.full_name,
-            dni=user.dni,
+            dni=str(user.dni),
             phone=user.phone,
             role=user.role.value,
             verification_status=user.verification_status.value,
@@ -190,7 +189,7 @@ def get_me() -> tuple[Response, int]:
     if company and company.id:
         company_schema = CompanyResponseSchema(
             id=company.id,
-            ruc=company.ruc,
+            ruc=str(company.ruc),
             business_name=company.business_name,
             bank_name=company.bank_name,
             currency=company.currency.value,
@@ -200,7 +199,7 @@ def get_me() -> tuple[Response, int]:
         id=user.id,
         email=user.email,
         full_name=user.full_name,
-        dni=user.dni,
+        dni=str(user.dni),
         phone=user.phone,
         role=user.role.value,
         verification_status=user.verification_status.value,

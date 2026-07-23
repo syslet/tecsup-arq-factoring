@@ -2,7 +2,8 @@ from src.domain.entities.invoice_sheet import InvoiceSheet
 from src.domain.entities.negotiation_history import NegotiationHistory
 from src.domain.repositories.invoice_sheet_repository import IInvoiceSheetRepository
 from src.domain.repositories.negotiation_repository import INegotiationRepository
-from src.domain.services.pricing_engine import PricingEngine
+from src.domain.services.pricing_service import IPricingService
+from src.infrastructure.services.pricing_service_impl import StandardPricingService
 
 
 class NegotiateQuoteUseCase:
@@ -14,11 +15,11 @@ class NegotiateQuoteUseCase:
         self,
         sheet_repository: IInvoiceSheetRepository,
         negotiation_repository: INegotiationRepository,
-        pricing_engine: PricingEngine | None = None,
+        pricing_service: IPricingService | None = None,
     ) -> None:
         self._sheet_repository = sheet_repository
         self._negotiation_repository = negotiation_repository
-        self._pricing_engine = pricing_engine or PricingEngine()
+        self._pricing_service = pricing_service or StandardPricingService()
 
     def execute(
         self,
@@ -38,7 +39,7 @@ class NegotiateQuoteUseCase:
 
         if rate_diff <= self.TOLERANCE_THRESHOLD:
             # Auto-approved counter offer under tolerance threshold
-            quote = self._pricing_engine.calculate_quote(
+            quote = self._pricing_service.calculate_quote(
                 invoices=sheet.invoices,
                 currency=sheet.currency,
                 advance_rate=sheet.advance_rate,

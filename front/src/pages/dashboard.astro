@@ -86,6 +86,13 @@ import "../styles/global.css";
       async function initDashboard() {
         try {
           const userRes = await apiClient.get<{ user: any }>("/api/auth/me");
+
+          const isAdmin = ["ADMIN", "ADMINISTRADOR"].includes(userRes.user.role);
+          if (isAdmin) {
+            window.location.href = "/admin/sheets";
+            return;
+          }
+
           (document.getElementById("user-display") as HTMLElement).textContent =
             `${userRes.user.full_name} (${userRes.user.company?.business_name || "N/A"})`;
 

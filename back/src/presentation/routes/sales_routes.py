@@ -50,7 +50,7 @@ def create_invoice_sheet() -> tuple[Response, int]:
 
         command = ProcessSheetCommand(
             company_id=company.id,
-            drawer_ruc=company.ruc,
+            drawer_ruc=str(company.ruc),
             currency=payload.get("currency", company.currency.value),
             invoices=parsed_items,
         )
@@ -61,8 +61,8 @@ def create_invoice_sheet() -> tuple[Response, int]:
             {
                 "id": inv.id,
                 "invoice_number": inv.invoice_number,
-                "drawer_ruc": inv.drawer_ruc,
-                "debtor_ruc": inv.debtor_ruc,
+                "drawer_ruc": str(inv.drawer_ruc),
+                "debtor_ruc": str(inv.debtor_ruc),
                 "debtor_name": inv.debtor_name,
                 "amount": inv.amount,
                 "currency": inv.currency.value,
@@ -121,11 +121,11 @@ def get_invoice_sheet(sheet_id: int) -> tuple[Response, int]:
         {
             "id": inv.id,
             "invoice_number": inv.invoice_number,
-            "drawer_ruc": inv.drawer_ruc,
-            "debtor_ruc": inv.debtor_ruc,
+            "drawer_ruc": str(inv.drawer_ruc),
+            "debtor_ruc": str(inv.debtor_ruc),
             "debtor_name": inv.debtor_name,
             "amount": inv.amount,
-            "currency": inv.currency.value if hasattr(inv.currency, "value") else str(inv.currency),
+            "currency": inv.currency.value,
             "issue_date": inv.issue_date.isoformat(),
             "due_date": inv.due_date.isoformat(),
             "days_to_maturity": inv.days_to_maturity,
@@ -143,9 +143,7 @@ def get_invoice_sheet(sheet_id: int) -> tuple[Response, int]:
                     "id": sheet.id,
                     "sheet_code": sheet.sheet_code,
                     "company_id": sheet.company_id,
-                    "currency": sheet.currency.value
-                    if hasattr(sheet.currency, "value")
-                    else str(sheet.currency),
+                    "currency": sheet.currency.value,
                     "total_amount": sheet.total_amount,
                     "advance_amount": sheet.advance_amount,
                     "interest_fee": sheet.interest_fee,
@@ -222,7 +220,7 @@ def upload_batch_invoice_sheet() -> tuple[Response, int]:
             file_bytes=file_bytes,
             filename=uploaded_file.filename,
             company_id=company.id,
-            drawer_ruc=company.ruc,
+            drawer_ruc=str(company.ruc),
             currency=currency,
         )
 
